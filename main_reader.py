@@ -9,7 +9,7 @@ with open('examples/musicxml/His Theme with keys.musicxml') as music_xml_file:
 dict_res = xml_parse(result)
 
 # https://github.com/w3c/musicxml/blob/v3.1/schema/musicxml.xsd
-pprint(dict_res)
+# pprint(dict_res)
 
 # print(dict_res.keys())
 # print(dict_res['score-partwise'].keys())
@@ -27,11 +27,13 @@ partitures = dict_res['score-partwise']['part']  # should be many? should be par
 target_partitura = partitures
 
 target_partitura_measures = target_partitura['measure']
-pprint(target_partitura_measures)
+# pprint(target_partitura_measures)
 for measure in target_partitura_measures:
-    # print(measure)
-    print(measure.get('attributes', {}).get('key'))
-    # exit()
+    # pprint(measure.get('attributes'))
+
+    print('measure #{} length: {}'.format(measure.get('@number'), measure.get('@width')))
+    attributes = measure.get('attributes', {})
+    print('key={}, devision={}, time={}'.format(attributes.get('key'), attributes.get('divisions'), attributes.get('time')))
     for note in measure['note']:
         pitch = note.get('pitch', {})
         note_name = '{}{}{}'.format(
@@ -40,4 +42,3 @@ for measure in target_partitura_measures:
             ['', '#', 'b'][int(pitch.get('alter', 0))]
         ) if pitch else None
         print(measure['@number'], note.get('staff'), note.get('pitch'), note.get('type'), note_name)
-
