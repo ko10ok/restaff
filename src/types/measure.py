@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import NamedTuple, List
 
 from .note import Note
@@ -33,6 +34,6 @@ class Measure(NamedTuple):
             number=int(xml_measure.get('@number')),
             time=TimeMeasure.from_xml_time(last_measure_attributes.get('time')),
             staves=int(last_measure_attributes.get('staves') or 1),
-            display=MeasureDisplayParams(width=xml_measure.get('@width')),
+            display=MeasureDisplayParams(width=float(xml_measure.get('@width'))),
             notes=notes
         )

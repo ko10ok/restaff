@@ -7,7 +7,7 @@ from svgwrite.path import Path
 from svgwrite.shapes import Polyline
 from svgwrite.text import Text
 
-from src import read_music_xml, ScoreSheet, Part
+from src import read_music_xml, ScoreSheet, Part, Measure
 
 list_width = 2977.2
 list_height = 4208.4
@@ -27,6 +27,7 @@ step_parts_y = 500
 Point = namedtuple('Point', ['x', 'y'])
 
 PageProperties = namedtuple('Page', ['width', 'height'])
+
 
 class StaffProperties(NamedTuple):
     left_offset: Any
@@ -48,7 +49,6 @@ class StaffProperties(NamedTuple):
 
     def parts_count_per_page(self, page: PageProperties):
         return int((page.height - self.top_offset) // (self.parts_height + self.parts_offset))
-
 
 
 # Note = namedtuple('Note', ['note', 'octave', 'alter'])
@@ -199,20 +199,63 @@ def staff_line(x, y, lenght):
         lines.append(line)
     return lines
 
-
+# TODO add pages?
 def get_staff_position(page: PageProperties, staff_prop: StaffProperties, part_number, staff_number=0) -> Point:
     part_y_position = staff_prop.top_offset + (staff_prop.parts_height + staff_prop.parts_offset) * part_number
     staff_y_position = part_y_position + (staff_prop.staff_height + staff_prop.staff_offset) * staff_number
-    print(part_y_position, staff_y_position, page.height)
-    assert staff_y_position <= page.height, 'To far on page'
+    # assert staff_y_position <= page.height, 'To far on page'
 
     return Point(x=staff_prop.left_offset, y=staff_y_position)
 
 
-def markup_sheet_staffs(page: PageProperties, staff_prop: StaffProperties, staff_mapping):
-    # parts_starts = get_staff_start_positions(current_page, staff_prop)
-    part_count_per_page = staff_prop.parts_count_per_page(current_page)
-    staff_length = current_page.width - current_staff_prop.right_offset - current_staff_prop.left_offset
+def measure_width(page: PageProperties, staff_prop: StaffProperties, measure: Measure):
+    staff_length = page.width - staff_prop.right_offset - staff_prop.left_offset
+    default_measure_width = int(staff_length // 4)
+    # mby base_notes = measure.time.beat_type
+    # scaled_on_notes_count = default_measure_width * (len(measure.notes | filter on max from parts) / measure.time.beat_type)
+
+    print('width', default_measure_width)
+    # if cutoff >
+    return round(default_measure_width, 3)
+
+
+def get_measure_position(page: PageProperties, staff_prop: StaffProperties, part: Part, measure_num):
+    staff_length = page.width - staff_prop.right_offset - staff_prop.left_offset
+    current_offset = 0
+    current_staff = 0
+
+    for measure in part.measures:
+
+        if measure.number == measure_num:
+            print('thhs one')
+
+        offset = current_offset % staff_length
+
+        width = measure_width(page, staff_prop, measure)
+        current_offset += width
+
+
+        print(a := {
+            'measure_number': measure.number,
+            'origin_width': measure.display.width,
+            'cutoff': page.width - staff_prop.left_offset - offset,
+            'calc_width': measure_width(page, staff_prop, measure),
+            'current_offset': current_offset,
+            'offset_from_staff_start': offset,
+            'staff': current_staff,
+            'end': min(offset+width, staff_length)
+        })
+        yield a
+
+        if current_offset+400  >= staff_length: # default_measure_width
+            print('ooooooy')
+            current_offset=0
+            current_staff+=1
+
+
+def markup_sheet_staffs(page: PageProperties, staff_prop: StaffProperties):
+    part_count_per_page = staff_prop.parts_count_per_page(page)
+    staff_length = page.width - staff_prop.right_offset - staff_prop.left_offset
     for part_idx in range(part_count_per_page):
         for staff_idx in range(staff_prop.staff_count):
             staff_point = get_staff_position(page, staff_prop, part_idx, staff_idx)
@@ -226,8 +269,35 @@ def render(svg_drawing, objects):
         svg_drawing.add(obj)
 
 
-staff_lines = markup_sheet_staffs(current_page, current_staff_prop, None)
+staff_lines = markup_sheet_staffs(current_page, current_staff_prop)
 render(dwg, staff_lines)
+
+measures_positions = get_measure_position(current_page, current_staff_prop, sheet.parts[0], 1)
+lines = []
+for measure in list(measures_positions):
+    staff_position = get_staff_position(current_page, current_staff_prop, measure['staff'])
+    print(staff_position)
+    lines += [Polyline(
+        points=[(staff_position.x + measure['offset_from_staff_start'], staff_position.y),
+                (staff_position.x + measure['offset_from_staff_start'], staff_position.y + current_staff_prop.parts_height)]
+    ).stroke(
+        color=svgwrite.rgb(0, 0, 0),
+        width=4,
+        linejoin='bevel',
+    ),
+        Polyline(
+            points=[(staff_position.x + measure['end'], staff_position.y),
+                    (staff_position.x + measure['end'],
+                     staff_position.y + current_staff_prop.parts_height)]
+        ).stroke(
+            color=svgwrite.rgb(0, 0, 0),
+            width=4,
+            linejoin='bevel',
+        )
+    ]
+
+render(dwg, staff_lines)
+render(dwg, lines)
 
 # notes drawing
 
@@ -253,10 +323,7 @@ for idx, note in enumerate(Notes):
     output_note = Note.from_note(note)
 
     note_orientation = get_note_orientation(output_note)
-
     oriented_note = [whole_note, upper_whole_note, lower_whole_note][note_orientation]
-
-    print(output_note, note_orientation)
 
     point_y = get_note_position(current_staff_prop, 3, output_note)
     dwg.add(
@@ -271,5 +338,5 @@ for idx, note in enumerate(Notes):
 
 dwg.save(pretty=True)
 
-with open('exhaust/music_xml_out.svg', 'r') as output:
-    print(output.read())
+# with open('exhaust/music_xml_out.svg', 'r') as output:
+#     print(output.read())
