@@ -4,9 +4,24 @@ from typing import NamedTuple, Any, List
 from .measure import Measure
 
 
+class PartInfo(NamedTuple):
+    id: int
+    part_name: str
+    part_abbreviation: str
+
+    @classmethod
+    def from_part_list(cls, score_part):
+        return PartInfo(
+            id=score_part['@id'],
+            part_name=score_part['part-name'],
+            part_abbreviation=score_part['part-abbreviation'],
+        )
+
+
+
 class Part(NamedTuple):
-    info: Any
-    measures: List[Any]
+    info: PartInfo
+    measures: List[Measure]
 
     @classmethod
     def from_music_xml_part(cls, part_info, part):
@@ -17,6 +32,6 @@ class Part(NamedTuple):
                 last_attrs := OrderedDict({**last_attrs, **(measure.get('attributes', {}))})
             ) for measure in part.get('measure')]
         return Part(
-            info=part_info,
+            info=PartInfo.from_part_list(part_info),
             measures=measures
         )

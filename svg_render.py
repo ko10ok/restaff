@@ -1,6 +1,6 @@
 from collections import namedtuple, OrderedDict
 from pprint import pprint
-from typing import NamedTuple, List
+from typing import NamedTuple, List, Any
 
 import svgwrite
 from svgwrite.path import Path
@@ -13,7 +13,7 @@ list_width = 2977.2
 list_height = 4208.4
 view_box = '{} {} {} {}'.format(0, 0, list_width, list_height)
 
-dwg = svgwrite.Drawing('exhaust/out.svg', size=(f'{list_width}px', f'{list_height}px'), profile='tiny',
+dwg = svgwrite.Drawing('exhaust/music_xml_out.svg', size=(f'{list_width}px', f'{list_height}px'), profile='tiny',
                        viewBox=view_box)
 
 start_x = 194.232
@@ -26,32 +26,32 @@ step_parts_y = 500
 
 Point = namedtuple('Point', ['x', 'y'])
 
-Notation = namedtuple('Notation', ['staff_line_counts', 'strokes'])
-StaffProperties = namedtuple('StaffProperties',
-                             ['left_offset', 'right_offset', 'top_offset', 'staff_line_offset', 'staff_line_count',
-                              'voice_offset', 'voice_count', 'staff_offset'])
 PageProperties = namedtuple('Page', ['width', 'height'])
 
-current_notation = Notation(
-    staff_line_counts=7,
-    strokes=['dotted', 'dotted', 'bold', 'dotted', 'dotted', 'bold', 'dotted']
-)
+class StaffProperties(NamedTuple):
+    left_offset: Any
+    right_offset: Any
+    top_offset: Any
+    staff_line_offset: Any
+    staff_line_count: Any
+    staff_offset: Any
+    staff_count: Any
+    parts_offset: Any
 
-current_page = PageProperties(width=2977.2, height=4208.4)
-current_staff_prop = StaffProperties(
-    left_offset=194.232,
-    right_offset=2977.2 - 2835.47,
-    top_offset=566.733,
-    staff_line_offset=25,
-    staff_line_count=7,
-    voice_offset=80,
-    voice_count=2,
-    staff_offset=120
-)
+    @property
+    def staff_height(self):
+        return self.staff_line_offset * (self.staff_line_count - 1)
+
+    @property
+    def parts_height(self):
+        return self.staff_height * self.staff_count + self.staff_offset * (self.staff_count - 1)
+
+    def parts_count_per_page(self, page: PageProperties):
+        return int((page.height - self.top_offset) // (self.parts_height + self.parts_offset))
+
 
 
 # Note = namedtuple('Note', ['note', 'octave', 'alter'])
-
 
 class Note(NamedTuple):
     step: str
@@ -83,6 +83,8 @@ notes_offsets = {
     'A#': (3, 0),
     'Bb': (3, 0),
     'B': (3, 1),
+    'Cb': (3, 1),
+    'B#': (3.5, 0),
 }
 
 
@@ -105,50 +107,6 @@ def get_note_position(staff_prop, staff_base_octave, note: Note) -> int:
 
     return last_line - note_octave_offset - note_offset
 
-
-def get_staff_start_positions(page: PageProperties, staff_prop: StaffProperties):
-    start_position = staff_prop.top_offset
-    voice_length = (staff_prop.staff_line_count - 1) * staff_prop.staff_line_offset
-    staff_length = staff_prop.voice_count * voice_length + (staff_prop.voice_count - 1) * staff_prop.voice_offset
-
-    staff_count_per_page = int((page.height - staff_prop.top_offset) // (staff_length + staff_prop.staff_offset))
-    return [
-        Point(
-            x=staff_prop.left_offset,
-            y=start_position + part_line * (staff_length + staff_prop.staff_offset)
-        )
-        for part_line in range(staff_count_per_page)
-    ]
-
-
-print(starts := get_staff_start_positions(current_page, current_staff_prop))
-
-
-def line_gen(start_x, lenght, start_y):
-    lines = []
-    for i in range(7):
-        dotted_lines = [1, 1, 0, 1, 1, 0, 1]
-        line = Polyline(
-            points=[(start_x, start_y + i * step_lines_y), (start_x + lenght, start_y + i * step_lines_y)]
-        ).stroke(
-            color=svgwrite.rgb(0, 0, 0),
-            width=2,
-            linejoin='bevel',
-        )
-        if dotted_lines[i]:
-            line.dasharray([2])
-        lines.append(line)
-    return lines
-
-
-def add_stan(start_x, lenght, start_y):
-    for line in line_gen(start_x, lenght, start_y):
-        dwg.add(line)
-
-
-for part_line in range(int(list_height // step_parts_y) - 1):
-    for idx, staff in enumerate([0, 1]):
-        add_stan(start_x, lenght, start_y + idx * step_staff_y + part_line * step_parts_y)
 
 # < path
 # class ="Note"
@@ -184,37 +142,6 @@ def moved_path(d, position_x, position_y, offset_x=0, offset_y=0):
     return centred_path
 
 
-# Reader format
-Notes = [
-    OrderedDict([('step', 'A'), ('alter', '1'), ('octave', '3')]),
-    OrderedDict([('step', 'A'), ('alter', '-1'), ('octave', '3')]),
-    OrderedDict([('step', 'G'), ('octave', '3')]),
-    OrderedDict([('step', 'A'), ('octave', '3')]),
-    OrderedDict([('step', 'B'), ('octave', '3')]),
-    OrderedDict([('step', 'B'), ('octave', '4')]),
-    OrderedDict([('step', 'F'), ('alter', '1'), ('octave', '5')]),
-    OrderedDict([('step', 'B'), ('octave', '5')]),
-    OrderedDict([('step', 'D'), ('alter', '1'), ('octave', '6')]),
-    OrderedDict([('step', 'C'), ('alter', '1'), ('octave', '6')]),
-]
-
-for idx, note in enumerate(Notes):
-    output_note = Note.from_note(note)
-
-    note_orientation = get_note_orientation(output_note)
-
-    oriented_note = [whole_note, upper_whole_note, lower_whole_note][note_orientation]
-    point_y = get_note_position(current_staff_prop, 3, output_note)
-    dwg.add(
-        Path(d=moved_path(oriented_note, starts[0].x + 100 + 100 * idx, starts[0].y + point_y))
-    )
-    dwg.add(Text(
-        output_note.step + str(output_note.octave) + ['', '#', 'b'][output_note.alter],
-        insert=(starts[0].x + 100 + 100 * idx, starts[0].y + point_y + 60),
-        fill="rgb(110,110,110)",
-        style="font-size:40px; font-family:Arial; font-weight: bold",
-    ))
-
 #  Readed  writing experiments
 music_xml_sheet = read_music_xml('examples/musicxml/His Theme experiments multi instruments.musicxml')
 pprint(music_xml_sheet)
@@ -222,12 +149,8 @@ sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
 
 
 def get_part_staves_count(part: Part):
-    return part.measures[0].staves or 1
+    return part.measures[0].staves
 
-
-# Drawing staffs for parts
-# get staff count per part
-# get total staff count
 
 def distribute_staffs(parts: List[Part]):
     part_staff_mapping = {}
@@ -247,7 +170,106 @@ def distribute_staffs(parts: List[Part]):
 staff_mapping = distribute_staffs(sheet.parts)
 print(staff_mapping)
 
+current_page = PageProperties(width=2977.2, height=4208.4)
+current_staff_prop = StaffProperties(
+    left_offset=194.232,
+    right_offset=2977.2 - 2835.47,
+    top_offset=566.733,
+    staff_line_offset=25,
+    staff_line_count=7,
+    staff_offset=80,
+    staff_count=staff_mapping['total_count'],
+    parts_offset=140
+)
+
+
+def staff_line(x, y, lenght):
+    lines = []
+    for i in range(7):
+        dotted_lines = [1, 1, 0, 1, 1, 0, 1]
+        line = Polyline(
+            points=[(x, y + i * step_lines_y), (x + lenght, y + i * step_lines_y)]
+        ).stroke(
+            color=svgwrite.rgb(0, 0, 0),
+            width=2,
+            linejoin='bevel',
+        )
+        if dotted_lines[i]:
+            line.dasharray([2])
+        lines.append(line)
+    return lines
+
+
+def get_staff_position(page: PageProperties, staff_prop: StaffProperties, part_number, staff_number=0) -> Point:
+    part_y_position = staff_prop.top_offset + (staff_prop.parts_height + staff_prop.parts_offset) * part_number
+    staff_y_position = part_y_position + (staff_prop.staff_height + staff_prop.staff_offset) * staff_number
+    print(part_y_position, staff_y_position, page.height)
+    assert staff_y_position <= page.height, 'To far on page'
+
+    return Point(x=staff_prop.left_offset, y=staff_y_position)
+
+
+def markup_sheet_staffs(page: PageProperties, staff_prop: StaffProperties, staff_mapping):
+    # parts_starts = get_staff_start_positions(current_page, staff_prop)
+    part_count_per_page = staff_prop.parts_count_per_page(current_page)
+    staff_length = current_page.width - current_staff_prop.right_offset - current_staff_prop.left_offset
+    for part_idx in range(part_count_per_page):
+        for staff_idx in range(staff_prop.staff_count):
+            staff_point = get_staff_position(page, staff_prop, part_idx, staff_idx)
+            lines = staff_line(staff_point.x, staff_point.y, staff_length)
+            for line in lines:
+                yield line
+
+
+def render(svg_drawing, objects):
+    for obj in objects:
+        svg_drawing.add(obj)
+
+
+staff_lines = markup_sheet_staffs(current_page, current_staff_prop, None)
+render(dwg, staff_lines)
+
+# notes drawing
+
+Notes = [
+    OrderedDict([('step', 'A'), ('alter', '1'), ('octave', '3')]),
+    OrderedDict([('step', 'A'), ('alter', '-1'), ('octave', '3')]),
+    OrderedDict([('step', 'G'), ('octave', '3')]),
+    OrderedDict([('step', 'A'), ('octave', '3')]),
+    OrderedDict([('step', 'B'), ('octave', '3')]),
+    OrderedDict([('step', 'B'), ('octave', '4')]),
+    OrderedDict([('step', 'F'), ('alter', '1'), ('octave', '5')]),
+    OrderedDict([('step', 'B'), ('octave', '5')]),
+    OrderedDict([('step', 'D'), ('alter', '1'), ('octave', '6')]),
+    OrderedDict([('step', 'C'), ('alter', '1'), ('octave', '6')]),
+    OrderedDict([('step', 'C'), ('alter', '-1'), ('octave', '2')]),
+    OrderedDict([('step', 'C'), ('alter', '0'), ('octave', '3')]),
+    OrderedDict([('step', 'C'), ('alter', '1'), ('octave', '3')]),
+]
+
+staff_point = get_staff_position(current_page, current_staff_prop, 0, 0)
+
+for idx, note in enumerate(Notes):
+    output_note = Note.from_note(note)
+
+    note_orientation = get_note_orientation(output_note)
+
+    oriented_note = [whole_note, upper_whole_note, lower_whole_note][note_orientation]
+
+    print(output_note, note_orientation)
+
+    point_y = get_note_position(current_staff_prop, 3, output_note)
+    dwg.add(
+        Path(d=moved_path(oriented_note, staff_point.x + 100 + 100 * idx, staff_point.y + point_y))
+    )
+    dwg.add(Text(
+        output_note.step + str(output_note.octave) + ['', '#', 'b'][output_note.alter],
+        insert=(staff_point.x + 100 + 100 * idx, staff_point.y + point_y + 60),
+        fill="rgb(110,110,110)",
+        style="font-size:40px; font-family:Arial; font-weight: bold",
+    ))
+
 dwg.save(pretty=True)
 
-with open('exhaust/out.svg', 'r') as output:
+with open('exhaust/music_xml_out.svg', 'r') as output:
     print(output.read())
