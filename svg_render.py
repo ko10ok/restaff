@@ -199,6 +199,7 @@ def staff_line(x, y, lenght):
         lines.append(line)
     return lines
 
+
 # TODO add pages?
 def get_staff_position(page: PageProperties, staff_prop: StaffProperties, part_number, staff_number=0) -> Point:
     part_y_position = staff_prop.top_offset + (staff_prop.parts_height + staff_prop.parts_offset) * part_number
@@ -234,7 +235,6 @@ def get_measure_position(page: PageProperties, staff_prop: StaffProperties, part
         width = measure_width(page, staff_prop, measure)
         current_offset += width
 
-
         print(a := {
             'measure_number': measure.number,
             'origin_width': measure.display.width,
@@ -243,14 +243,14 @@ def get_measure_position(page: PageProperties, staff_prop: StaffProperties, part
             'current_offset': current_offset,
             'offset_from_staff_start': offset,
             'staff': current_staff,
-            'end': min(offset+width, staff_length)
+            'end': min(offset + width, staff_length)
         })
         yield a
 
-        if current_offset+400  >= staff_length: # default_measure_width
+        if current_offset + 400 >= staff_length:  # default_measure_width
             print('ooooooy')
-            current_offset=0
-            current_staff+=1
+            current_offset = 0
+            current_staff += 1
 
 
 def markup_sheet_staffs(page: PageProperties, staff_prop: StaffProperties):
@@ -279,7 +279,8 @@ for measure in list(measures_positions):
     print(staff_position)
     lines += [Polyline(
         points=[(staff_position.x + measure['offset_from_staff_start'], staff_position.y),
-                (staff_position.x + measure['offset_from_staff_start'], staff_position.y + current_staff_prop.parts_height)]
+                (staff_position.x + measure['offset_from_staff_start'],
+                 staff_position.y + current_staff_prop.parts_height)]
     ).stroke(
         color=svgwrite.rgb(0, 0, 0),
         width=4,
