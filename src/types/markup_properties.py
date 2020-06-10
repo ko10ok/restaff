@@ -8,6 +8,7 @@ class StaffProperties(NamedTuple):
     left_offset: Any
     right_offset: Any
     top_offset: Any
+    bottom_offset: Any
     staff_line_offset: Any
     staff_line_count: Any
     staff_offset: Any
