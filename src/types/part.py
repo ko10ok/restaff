@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import NamedTuple, Any, List
+from typing import NamedTuple, List
 
 from .measure import Measure
 
@@ -18,9 +18,9 @@ class PartInfo(NamedTuple):
         )
 
 
-
 class Part(NamedTuple):
     info: PartInfo
+    staff_count: int
     measures: List[Measure]
 
     @classmethod
@@ -33,5 +33,6 @@ class Part(NamedTuple):
             ) for measure in part.get('measure')]
         return Part(
             info=PartInfo.from_part_list(part_info),
+            staff_count=measures[0].staves,
             measures=measures
         )

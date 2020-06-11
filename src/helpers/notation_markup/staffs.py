@@ -2,7 +2,7 @@ import svgwrite
 from svgwrite.shapes import Polyline
 
 from .title import title_place_heigh
-from ...types import PageProperties, StaffProperties, Point
+from ...types import PageProperties, StaffProperties, Point, ScoreSheet
 
 
 def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Point):
@@ -32,7 +32,9 @@ def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Po
 #
 #     return Point(x=staff_prop.left_offset, y=staff_y_position)
 
-def staves_position_marker(page_prop: PageProperties, staff_prop: StaffProperties):
+
+# exctract paging logic to basic offset
+def staves_position_paginator_marker(page_prop: PageProperties, staff_prop: StaffProperties):
     page = 0
     line = 0
     while True:
@@ -54,6 +56,19 @@ def staves_position_marker(page_prop: PageProperties, staff_prop: StaffPropertie
         )
         line += 1
 
+def staves_position_marker(page_prop: PageProperties, staff_prop: StaffProperties, top_offset):
+    line = 0
+    while True:
+        part_y_position = top_offset + (staff_prop.parts_height + staff_prop.parts_offset) * line
+
+        if part_y_position + staff_prop.parts_height > page_prop.height - staff_prop.bottom_offset:
+            return
+
+        yield Point(
+            x=staff_prop.left_offset,
+            y=part_y_position
+        )
+        line += 1
 
 def staff_position_marker(staff_prop: StaffProperties, offset_point: Point):
     for staff_number in range(staff_prop.staff_count):
@@ -62,3 +77,46 @@ def staff_position_marker(staff_prop: StaffProperties, offset_point: Point):
             x=staff_prop.left_offset,
             y=staff_y_position
         )
+
+
+def part_staff_positions(staff_prop: StaffProperties, offset_point: Point, sheet: ScoreSheet):
+    staffs_positions = staff_position_marker(staff_prop, offset_point)
+    staffs_ids = []
+    for part in sheet.parts:
+        voices = part.measures[0].staves
+        for staff in range(voices):
+            staffs_ids += [(part.info.id, staff + 1)]
+            print(part.info.id, staff)
+    return dict(zip(staffs_ids, staffs_positions))
+
+
+def enumerate_sheet_staff(sheet: ScoreSheet):
+    idx = 0
+    staff_map = {}
+    for part in sheet.parts:
+        if part.info.id not in staff_map:
+            staff_map[part.info.id] = {}
+        for staff in range(1, part.staff_count + 1):
+            staff_map[part.info.id][staff] = idx
+            idx += 1
+    return staff_map
+
+def resolve_part_staff(sheet:ScoreSheet, part_id, staff):
+    staff_map = enumerate_sheet_staff(sheet)
+    return staff_map[part_id][staff]
+
+
+# def part_staff_positions(staff_prop: StaffProperties, offset_point: Point, sheet: ScoreSheet):
+#     staffs_positions = staff_position_marker(staff_prop, offset_point)
+#     staffs_ids = []
+#     for part in sheet.parts:
+#         staves = part.measures[0].staves
+#         for staff in range(1, part.staff_count + 1):
+#             staffs_ids += [(part.info.id, staff + 1)]
+#             print(part.info.id, staff)
+#     return dict(zip(staffs_ids, staffs_positions))
+
+def position_part_staff(staff_prop: StaffProperties, offset_point: Point, sheet: ScoreSheet, part_id, staff):
+    staffs_positions = staff_position_marker(staff_prop, offset_point)
+    stuff_number = resolve_part_staff(sheet, part_id, staff)
+    return list(staffs_positions)[stuff_number]
