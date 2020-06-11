@@ -12,7 +12,7 @@ def guess_measure_octave(measure: Measure) -> Dict[int, int]:
         if k is None:
             k = 1
         try:
-            octaves[k] = median([n.pitch.octave if n.pitch else None for n in v])
+            octaves[k] = int(median([n.pitch.octave if n.pitch else None for n in v]))
         except:
             octaves[k] = None
 
@@ -26,7 +26,7 @@ def max_guess_parted_measure_length(
         measures: List[Measure],
         measures_left_count,
         page_width_left):
-    avg_measures_per_page = 5
+    avg_measures_per_page = 4
     avg_measure_length = (page_prop.width - staff_prop.right_offset - staff_prop.left_offset) // avg_measures_per_page
 
     notes_count_multiplier = 1
@@ -59,17 +59,21 @@ def guess_measure_length(page_prop, staff_prop, total_measures_count, measures, 
 
 
 # only horizontal coords
-def place_next_measure(page_prop, staff_prop, start_measure_position, measure_length):
-    last_in_line = False
+def place_next_measure(page_prop, staff_prop, last_measure_placement: MeasurePosition, measure_length):
+    last_on_staff = False
     staff_unused_width = (page_prop.width - staff_prop.right_offset - staff_prop.left_offset) // 20
 
     # measure length
     page_staff_end = page_prop.width - staff_prop.right_offset
-    measure_start_position = start_measure_position
+    measure_start_position = last_measure_placement.end
     measure_end_position = measure_start_position + measure_length
 
     if page_staff_end - measure_end_position < staff_unused_width:
-        last_in_line = True
+        last_on_staff = True
         measure_end_position = page_staff_end
 
-    return MeasurePosition(start_measure_position, measure_end_position, last_in_line)
+    return MeasurePosition(
+        last_measure_placement.end, measure_end_position,
+        first_on_staff=last_measure_placement.last_on_staff,
+        last_on_staff=last_on_staff
+    )

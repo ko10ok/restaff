@@ -1,7 +1,9 @@
-from collections import defaultdict
 from typing import NamedTuple
 
-from ...types import NotePitch, Note
+from svgwrite.path import Path
+
+from ..path_editor import moved_path
+from ...types import NotePitch, Note, Point
 
 # (multiplier from 1 staff line, lower upper half note)
 notes_offsets = {
@@ -28,6 +30,16 @@ notes_offsets = {
     'B#': (3.5, 0),
 }
 
+notes_times = {
+    'whole': 1,
+    'half': 2,
+    'quarter': 4,
+    'eighth': 8,
+    '16th': 16,
+    '32nd': 32,
+    '64nd': 64
+}
+
 
 class NoteImage(NamedTuple):
     centred: str
@@ -41,6 +53,11 @@ whole_note = NoteImage(
     upper='M21.267,2.505 C18.947,2.505 17.272,3.310 16.240,4.919 C15.085,6.465 14.508,8.564 14.508,11.214 C14.508,11.941 13.797,13.802 6.504,13.695 C3.597,13.652 -3.277,13.444 3.094,20.015 C5.981,22.992 11.341,25.335 16.458,26.325 C21.277,27.258 25.937,26.924 26.334,26.926 C33.156,26.963 42.701,23.404 45.475,20.543 C48.249,17.681 47.591,18.312 48.564,16.042 C48.779,15.543 49.008,14.162 48.033,13.936 C44.580,13.136 34.880,14.354 34.573,13.345 C34.171,12.026 32.907,9.317 32.095,8.213 C30.486,6.151 28.748,4.667 26.882,3.759 C25.005,2.923 23.133,2.505 21.267,2.505 M24.562,0.000 C31.522,0.000 37.322,1.351 41.962,4.053 C46.664,6.764 49.015,9.955 49.015,13.627 C49.015,17.555 46.598,20.778 41.761,23.293 C36.925,25.934 31.192,27.253 24.562,27.253 C17.725,27.253 11.926,25.903 7.161,23.201 C2.387,20.489 0.000,17.298 0.000,13.627 C0.000,9.698 2.449,6.476 7.347,3.960 C12.183,1.320 17.921,0.000 24.562,0.000'
 )
 
+# TODO make partial note filled draft
+note_signs = {
+    'whole': whole_note
+}
+
 
 def get_note_name(note_pitch: NotePitch):
     return note_pitch.step + ['', '#', 'b'][note_pitch.alter]
@@ -52,8 +69,8 @@ def get_note_position(staff_prop, staff_base_octave, note: Note) -> int:
     octave_offset = staff_prop.staff_line_offset * 3  # 2 lines 3 spaces divides 1 octave
     note_octave_offset = (note.octave - staff_base_octave) * octave_offset
 
-    note = note.step + ['', '#', 'b'][note.alter]
-    note_grade, note_orientation = notes_offsets[note]
+    note_name = note.step + ['', '#', 'b'][note.alter]
+    note_grade, note_orientation = notes_offsets[note_name]
 
     note_offset = note_grade * staff_prop.staff_line_offset
 
@@ -61,11 +78,18 @@ def get_note_position(staff_prop, staff_base_octave, note: Note) -> int:
 
 
 def get_note_sign(note: Note):
-    note_grade, note_orientation = notes_offsets[note]
-    note = defaultdict({
-        'whole': whole_note
-    }, default_factory=lambda x: whole_note)[note.type]
-    return getattr(['centred', 'lower', 'upper'][note_orientation], note)
+    note_name = note.pitch.step + ['', '#', 'b'][note.pitch.alter]
+    note_grade, note_orientation = notes_offsets[note_name]
+
+    if note.type not in note_signs:
+        note_sign = whole_note
+    else:
+        note_sign = note_signs[note.type]
+    return getattr(note_sign, ['centred', 'lower', 'upper'][note_orientation])
+
+
+def markup_note(sign, note_position: Point):
+    return Path(d=moved_path(sign, note_position.x, note_position.y))
 
     #
     # output_note = Note.from_note(note)

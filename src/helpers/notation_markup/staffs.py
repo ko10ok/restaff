@@ -1,5 +1,6 @@
 import svgwrite
 from svgwrite.shapes import Polyline
+from svgwrite.text import Text
 
 from .title import title_place_heigh
 from ...types import PageProperties, StaffProperties, Point, ScoreSheet, MeasurePosition
@@ -76,7 +77,7 @@ def staff_position_marker(staff_prop: StaffProperties, offset_point: Point):
     for staff_number in range(staff_prop.staff_count):
         staff_y_position = offset_point.y + (staff_prop.staff_height + staff_prop.staff_offset) * staff_number
         yield Point(
-            x=staff_prop.left_offset,
+            x=offset_point.x,
             y=staff_y_position
         )
 
@@ -144,4 +145,13 @@ def markup_measure(staff_prop: StaffProperties, staves_position, measure_placeme
                         width=2,
                         linejoin='bevel',
                     )
-                ] if measure_placement.last_in_line else [])
+                ] if measure_placement.last_on_staff else [])
+
+def markup_measure_octave(staff_prop: StaffProperties, octave_text, staff_measure_point):
+    return Text(
+        octave_text,
+        insert=(staff_measure_point.x + 5,
+                staff_measure_point.y + staff_prop.staff_height - staff_prop.staff_line_offset - 5),
+        fill="rgb(0,0,0)",
+        style=f"font-size:{staff_prop.staff_line_offset * 2}; font-family:Arial",
+    )

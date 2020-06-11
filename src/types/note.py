@@ -42,6 +42,7 @@ class Note(NamedTuple):
     @classmethod
     def from_music_xml_note(self, music_xml_note):
         is_rest_note = False if music_xml_note.get('rest', 'nope') == 'nope' else True
+        is_dotted_note = False if music_xml_note.get('dot', 'nope') == 'nope' else True
         pitch = None if is_rest_note else NotePitch.from_music_xml_note_pitch(music_xml_note.get('pitch'))
         note_name = 'rest' if is_rest_note else '{}{}{}'.format(
             pitch.step,
@@ -55,7 +56,7 @@ class Note(NamedTuple):
             rest=is_rest_note,
             pitch=pitch,
             type=music_xml_note.get('type'),
-            dot=music_xml_note.get('dot'),
+            dot=is_dotted_note,
             name=note_name,
             time_modification=music_xml_note.get('time-modification'),
             display=NoteDisplayParams.from_music_xml_note(music_xml_note),
