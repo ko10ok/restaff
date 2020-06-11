@@ -126,7 +126,7 @@ def position_part_staff(staff_prop: StaffProperties, offset_point: Point, sheet:
     return list(staffs_positions)[stuff_number]
 
 
-def markup_measure(staff_prop: StaffProperties, staves_position, measure_placement: MeasurePosition):
+def markup_measure(staff_prop: StaffProperties, staves_position, measure_number, measure_placement: MeasurePosition):
     return [
                Polyline(
                    points=[(measure_placement.start, staves_position.y),
@@ -145,7 +145,14 @@ def markup_measure(staff_prop: StaffProperties, staves_position, measure_placeme
                         width=2,
                         linejoin='bevel',
                     )
-                ] if measure_placement.last_on_staff else [])
+                ] if measure_placement.last_on_staff else []) + ([
+        Text(
+        str(measure_number),
+        insert=(measure_placement.start - 5,
+                staves_position.y - 10),
+        fill="rgb(0,0,0)",
+        style=f"font-size:{staff_prop.staff_line_offset}; font-family:Arial",
+    )] if measure_placement.first_on_staff or 'debug' else [])
 
 def markup_measure_octave(staff_prop: StaffProperties, octave_text, staff_measure_point):
     return Text(

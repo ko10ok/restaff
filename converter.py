@@ -1,9 +1,9 @@
 from pprint import pprint
 
 from src.helpers import markup_title, staff_line, part_staff_positions, guess_measure_octave, position_part_staff, \
-    title_place_heigh, staves_position_marker, read_music_xml, get_staffs_count, guess_measure_length, \
-    place_next_measure, render, markup_measure, markup_measure_octave, get_note_position, notes_times, \
-    get_note_sign, markup_note
+    title_place_heigh, staves_position_marker, read_music_xml, get_staffs_count, place_next_measure, render, \
+    markup_measure, markup_measure_octave, get_note_position, notes_times, \
+    get_note_sign, markup_note, calc_measure_length, fit_measure_length_in_page, correct_measure
 from src.types import ScoreSheet, StaffProperties, PageProperties, Point, MeasurePosition
 
 ## reads
@@ -78,15 +78,33 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                 objects += staff_line(page_prop, staff_prop, position)
 
         # forward measure
-        measure_length = guess_measure_length(
-            page_prop, staff_prop,
-            total_measures_count=total_measures_count,
-            measures=[part.measures[measure_number] for part in sheet.parts],
-            measure_number=measure_number,
-            measure_start_position=last_measure_placement.end
+        # measure_length = guess_measure_length(
+        #     page_prop, staff_prop,
+        #     total_measures_count=total_measures_count,
+        #     measures=[part.measures[measure_number] for part in sheet.parts],
+        #     measure_number=measure_number,
+        #     measure_start_position=last_measure_placement.end
+        # )
+        measure_length = calc_measure_length(
+            page_prop, staff_prop, measures=[part.measures[measure_number] for part in sheet.parts]
         )
+
+        # if current first measure wider then staff length
+        if last_measure_placement.last_on_staff:
+            measure_length = fit_measure_length_in_page(page_prop, staff_prop, measure_length,
+                                                        last_measure_placement.end)
+
         measure_placement = place_next_measure(page_prop, staff_prop, last_measure_placement, measure_length)
-        objects += markup_measure(staff_prop, staves_position, measure_placement)
+
+        if measure_number + 1 < total_measures_count:
+            next_measure_length = calc_measure_length(
+                page_prop, staff_prop, measures=[part.measures[measure_number + 1] for part in sheet.parts]
+            )
+            measure_placement = correct_measure(page_prop, staff_prop, measure_placement, next_measure_length)
+        else:
+            measure_placement = correct_measure(page_prop, staff_prop, measure_placement, page_prop.width)
+
+        objects += markup_measure(staff_prop, staves_position, measure_number + 1, measure_placement)
 
         def measure_offset_point(measure_placement, staves_position):
             return Point(measure_placement.start, staves_position.y)
@@ -130,22 +148,23 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                 for part_staff in range(1, part.staff_count + 1)
             }
 
+            # proportional placement sucks in 16th 32nd ... notes
+            # might be partially fixed with dynamic measure length=f(measure_notes)
+            # TODO chords must be drawn separately with minimal note step length
             for note in measure.notes:
-
-                part_position = position_part_staff(staff_prop, staves_position, sheet, part.info.id, note.staff or 1)
-                staff_octave = parted_measure_octaves[part.info.id][0][note.staff or 1] or default_octave
-                # print(f'{note.name=} {part.info.id=} {note.staff=} {staff_octave=} {note.type=} {note.time_modification=} {note.dot=} {parts_staff_offsets[(part.info.id, note.staff or 1)]}')
+                part_position = position_part_staff(staff_prop, staves_position, sheet, part.info.id, note.staff)
+                staff_octave = parted_measure_octaves[part.info.id][0][note.staff] or default_octave
                 print(f'{note=}')
                 if not note.rest:
                     vertical_note_position = part_position.y + get_note_position(staff_prop, staff_octave, note.pitch)
-                    horizontal_note_position = note_offset[note.staff or 1]
+                    horizontal_note_position = note_offset[note.staff]
                     note_sign = get_note_sign(note)
                     objects += [markup_note(note_sign, Point(horizontal_note_position, vertical_note_position))]
                 else:
                     pass
 
                 note_lenght = measure_length / notes_times[note.type] if note.type else notes_times['whole']
-                note_offset[note.staff or 1] += note_lenght + (note_lenght / 2 if note.dot else 0)
+                note_offset[note.staff] += note_lenght + (note_lenght / 2 if note.dot else 0)
 
             octaves = guess_measure_octave(measure)
 

@@ -32,6 +32,7 @@ class Note(NamedTuple):
     voice: Any
     pitch: Any
     rest: Any
+    chord: Any
     type: Any
     dot: Any
     name: Any
@@ -43,6 +44,7 @@ class Note(NamedTuple):
     def from_music_xml_note(self, music_xml_note):
         is_rest_note = False if music_xml_note.get('rest', 'nope') == 'nope' else True
         is_dotted_note = False if music_xml_note.get('dot', 'nope') == 'nope' else True
+        is_chord_note = False if music_xml_note.get('chord', 'nope') == 'nope' else True
         pitch = None if is_rest_note else NotePitch.from_music_xml_note_pitch(music_xml_note.get('pitch'))
         note_name = 'rest' if is_rest_note else '{}{}{}'.format(
             pitch.step,
@@ -51,9 +53,10 @@ class Note(NamedTuple):
         )
         staff = music_xml_note.get('staff', None)
         return Note(
-            staff=int(staff) if staff else None,  # for instruments with multiple staffs
+            staff=int(staff) if staff else 1,  # for instruments with multiple staffs
             voice=int(music_xml_note.get('voice')),  # optional division
             rest=is_rest_note,
+            chord=is_chord_note,
             pitch=pitch,
             type=music_xml_note.get('type'),
             dot=is_dotted_note,
