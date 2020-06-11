@@ -1,5 +1,5 @@
-from src import ScoreSheet
-from src import read_music_xml
+from src.types import ScoreSheet
+from src.helpers import read_music_xml
 
 # https://github.com/w3c/musicxml/blob/v3.1/schema/musicxml.xsd
 
