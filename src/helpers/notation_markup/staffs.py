@@ -2,7 +2,7 @@ import svgwrite
 from svgwrite.shapes import Polyline
 
 from .title import title_place_heigh
-from ...types import PageProperties, StaffProperties, Point, ScoreSheet
+from ...types import PageProperties, StaffProperties, Point, ScoreSheet, MeasurePosition
 
 
 def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Point):
@@ -56,6 +56,7 @@ def staves_position_paginator_marker(page_prop: PageProperties, staff_prop: Staf
         )
         line += 1
 
+
 def staves_position_marker(page_prop: PageProperties, staff_prop: StaffProperties, top_offset):
     line = 0
     while True:
@@ -69,6 +70,7 @@ def staves_position_marker(page_prop: PageProperties, staff_prop: StaffPropertie
             y=part_y_position
         )
         line += 1
+
 
 def staff_position_marker(staff_prop: StaffProperties, offset_point: Point):
     for staff_number in range(staff_prop.staff_count):
@@ -101,7 +103,8 @@ def enumerate_sheet_staff(sheet: ScoreSheet):
             idx += 1
     return staff_map
 
-def resolve_part_staff(sheet:ScoreSheet, part_id, staff):
+
+def resolve_part_staff(sheet: ScoreSheet, part_id, staff):
     staff_map = enumerate_sheet_staff(sheet)
     return staff_map[part_id][staff]
 
@@ -120,3 +123,25 @@ def position_part_staff(staff_prop: StaffProperties, offset_point: Point, sheet:
     staffs_positions = staff_position_marker(staff_prop, offset_point)
     stuff_number = resolve_part_staff(sheet, part_id, staff)
     return list(staffs_positions)[stuff_number]
+
+
+def markup_measure(staff_prop: StaffProperties, staves_position, measure_placement: MeasurePosition):
+    return [
+               Polyline(
+                   points=[(measure_placement.start, staves_position.y),
+                           (measure_placement.start, staves_position.y + staff_prop.parts_height)]
+               ).stroke(
+                   color=svgwrite.rgb(0, 0, 0),
+                   width=2,
+                   linejoin='bevel',
+               )
+           ] + ([
+                    Polyline(
+                        points=[(measure_placement.end, staves_position.y),
+                                (measure_placement.end, staves_position.y + staff_prop.parts_height)]
+                    ).stroke(
+                        color=svgwrite.rgb(0, 0, 0),
+                        width=2,
+                        linejoin='bevel',
+                    )
+                ] if measure_placement.last_in_line else [])
