@@ -94,7 +94,7 @@ def get_note_sign(note: Note):
         note_sign = whole_note
     else:
         note_sign = note_signs[note.type]
-    return getattr(note_sign, ['centred', 'lower', 'upper'][note_orientation])
+    return getattr(note_sign, ['centred', 'upper', 'lower'][note_orientation])
 
 
 def get_rest_sign(note: Note):

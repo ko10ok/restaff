@@ -2,13 +2,13 @@ from pprint import pprint
 
 from src.helpers import markup_title, staff_line, part_staff_positions, guess_measure_octave, position_part_staff, \
     title_place_heigh, staves_position_marker, read_music_xml, get_staffs_count, place_next_measure, render, \
-    markup_measure, markup_measure_octave, get_note_position, notes_times, \
+    markup_measure, markup_measure_octave, notes_times, \
     get_note_sign, markup_note, calc_measure_length, fit_measure_length_in_page, correct_measure, get_rest_sign, \
-    markup_measure_time, get_parted_measures
+    markup_measure_time, get_parted_measures, get_note_position
 from src.types import ScoreSheet, StaffProperties, PageProperties, Point, MeasurePosition
 
 ## reads
-music_xml_sheet = read_music_xml('examples/musicxml/His Theme notes dots timings.musicxml')
+music_xml_sheet = read_music_xml('examples/musicxml/His Theme chords at 25.musicxml')
 pprint(music_xml_sheet)
 sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
 pprint(sheet)
@@ -19,7 +19,7 @@ page_prop = PageProperties(width=2977.2, height=4208.4)
 staff_prop = StaffProperties(
     left_offset=194.232,
     right_offset=2977.2 - 2835.47,
-    top_offset=566.733,
+    top_offset=366.733,
     bottom_offset=50,
     staff_line_offset=25,
     staff_line_count=7,
@@ -147,24 +147,49 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
 
             # TODO chords must be drawn separately with minimal note step length
 
+            note_delta_offset = {
+                part_staff: 0
+                for part_staff in range(1, part.staff_count + 1)
+            }
+
+            chord_stepout = True
+
             for note in parted_measures[part.info.id].notes:
+                if not note.chord:
+                    for part_staff in range(1, part.staff_count + 1):
+                        note_offset[note.staff] += note_delta_offset[note.staff]
+                        note_delta_offset[note.staff] = 0
+
                 part_position = position_part_staff(staff_prop, staves_position, sheet, part.info.id, note.staff)
                 staff_octave = guessed_staff_octave[note.staff] or default_octave
+
+                chord_offset = (50 if note.chord else 0)
+                horizontal_note_position = note_offset[note.staff] + (chord_offset if chord_stepout else 0)
+                print(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
+
                 print(f'{note=}')
                 if not note.rest:
                     vertical_note_position = part_position.y + get_note_position(staff_prop, staff_octave, note.pitch)
-                    horizontal_note_position = note_offset[note.staff]
                     note_sign = get_note_sign(note)
                     objects += [markup_note(note_sign, Point(horizontal_note_position, vertical_note_position))]
                 else:
                     vertical_note_position = part_position.y + staff_prop.staff_height // 2
-                    horizontal_note_position = note_offset[note.staff]
                     note_sign = get_rest_sign(note)
                     objects += [markup_note(note_sign, Point(horizontal_note_position, vertical_note_position))]
 
                 note_lenght = measure_length / notes_times[note.type] if note.type else notes_times['whole']
-                note_offset[note.staff] += note_lenght + (note_lenght / 2 if note.dot else 0)
+                if note.chord:
+                    chord_stepout = not chord_stepout
+                    note_delta_offset[note.staff] = min(
+                        note_lenght + (note_lenght / 2 if note.dot else 0),
+                        note_delta_offset[note.staff]
+                    )
+                else:
+                    chord_stepout = True
+                    note_delta_offset[note.staff] = note_lenght + (note_lenght / 2 if note.dot else 0)
 
+                print(f'{note_offset=}')
+                print(f'{note_delta_offset=}')
 
     # markup measures:
     #  start stops
