@@ -9,10 +9,9 @@ def guess_measure_octave(measure: Measure) -> Dict[int, int]:
     from statistics import median
     octaves = {}
     for k, v in notes.items():
-        if k is None:
-            k = 1
+        note_pitches = [n.pitch.octave for n in v if n.pitch]
         try:
-            octaves[k] = int(median([n.pitch.octave if n.pitch else None for n in v]))
+            octaves[k] = int(median(note_pitches))
         except:
             octaves[k] = None
 
@@ -24,12 +23,34 @@ def calc_measure_length(page_prop, staff_prop, measures: List[Measure]):
     avg_measures_per_page = 4
     avg_measure_length = (page_prop.width - staff_prop.right_offset - staff_prop.left_offset) // avg_measures_per_page
 
+    # multiplier on notes count
+    measure_staff_grouped_notes = [groupby(measure.notes, lambda x: x.staff) for measure in measures]
     max_notes_count = max([
-        max([len(list(notes)) for staff, notes in groupby(measure.notes, lambda x: x.staff)])
-        for measure in measures
+        max([len(list(notes)) for staff, notes in staff_grouped_notes])
+        for staff_grouped_notes in measure_staff_grouped_notes
     ])
     notes_count_multiplier = max(max_notes_count / 4, 0.5)
-    return avg_measure_length * notes_count_multiplier
+
+    # multiplier on note_count per staff
+    beats = max([measure.time.beats for measure in measures])
+    comfort_beats_per_page = 24
+    measures_count_per_page = comfort_beats_per_page // beats
+    staff_length = page_prop.width - staff_prop.right_offset - staff_prop.left_offset
+    avg_measure_length = staff_length // measures_count_per_page
+
+    measure_staff_grouped_notes = [groupby(measure.notes, lambda x: x.staff) for measure in measures]
+    actual_max_notes_count = max([
+        max([len(list(notes)) for staff, notes in staff_grouped_notes])
+        for staff_grouped_notes in measure_staff_grouped_notes
+    ])
+    notes_count_multiplier = max_notes_count / avg_measures_per_page
+    print(f'{beats=} {avg_measures_per_page=} {actual_max_notes_count=} {notes_count_multiplier=}')
+
+    result_measure_length = avg_measure_length * notes_count_multiplier
+    minimal_accepted_measure_length = staff_length // 8
+    print(f'{result_measure_length=} {minimal_accepted_measure_length=}')
+
+    return max(avg_measure_length * notes_count_multiplier, minimal_accepted_measure_length)
 
 
 def fit_measure_length_in_page(page_prop: PageProperties,
@@ -112,7 +133,7 @@ def correct_measure(page_prop: PageProperties, staff_prop: StaffProperties, meas
         return MeasurePosition(
             start=measure_placement.start,
             end=page_staff_end,
-            first_on_staff=False,
+            first_on_staff=measure_placement.first_on_staff,
             last_on_staff=True
         )
     else:

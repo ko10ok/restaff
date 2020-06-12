@@ -1,9 +1,9 @@
 import svgwrite
-from svgwrite.shapes import Polyline
+from svgwrite.shapes import Polyline, Circle
 from svgwrite.text import Text
 
 from .title import title_place_heigh
-from ...types import PageProperties, StaffProperties, Point, ScoreSheet, MeasurePosition
+from ...types import PageProperties, StaffProperties, Point, ScoreSheet, MeasurePosition, TimeMeasure
 
 
 def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Point):
@@ -146,19 +146,44 @@ def markup_measure(staff_prop: StaffProperties, staves_position, measure_number,
                         linejoin='bevel',
                     )
                 ] if measure_placement.last_on_staff else []) + ([
-        Text(
-        str(measure_number),
-        insert=(measure_placement.start - 5,
-                staves_position.y - 10),
-        fill="rgb(0,0,0)",
-        style=f"font-size:{staff_prop.staff_line_offset}; font-family:Arial",
-    )] if measure_placement.first_on_staff or 'debug' else [])
+                                                                     Text(
+                                                                         str(measure_number),
+                                                                         insert=(measure_placement.start - 5,
+                                                                                 staves_position.y - 10),
+                                                                         fill="rgb(0,0,0)",
+                                                                         style=f"font-size:{staff_prop.staff_line_offset}; font-family:Arial",
+                                                                     )] if measure_placement.first_on_staff or 'debug' else [])
 
 def markup_measure_octave(staff_prop: StaffProperties, octave_text, staff_measure_point):
-    return Text(
-        octave_text,
-        insert=(staff_measure_point.x + 5,
-                staff_measure_point.y + staff_prop.staff_height - staff_prop.staff_line_offset - 5),
-        fill="rgb(0,0,0)",
-        style=f"font-size:{staff_prop.staff_line_offset * 2}; font-family:Arial",
-    )
+    x = staff_measure_point.x + 25
+    y = staff_measure_point.y + staff_prop.staff_height - staff_prop.staff_line_offset
+    r = staff_prop.staff_line_offset * 0.8
+    font_size = staff_prop.staff_line_offset * 1.45
+    return [
+        Circle(center=(x, y), r=r, fill="rgb(255,255,255)", stroke="rgb(0,0,0)", stroke_width=2),
+        Text(
+            octave_text,
+            insert=(x, y + font_size * 0.35),
+            fill="rgb(0,0,0)",
+            text_anchor="middle",
+            style=f"font-size:{font_size}; font-family:Arial",
+        )]
+
+
+def markup_measure_time(staff_prop: StaffProperties, time: TimeMeasure, staff_measure_point):
+    return [
+        Text(
+            str(time.beats),
+            insert=(staff_measure_point.x + 60,
+                    staff_measure_point.y + staff_prop.staff_line_offset * 2.75),
+            fill="rgb(0,0,0)",
+            text_decoration="underline",
+            style=f"font-size:{staff_prop.staff_line_offset * 2.5}; font-family:Arial; font-weight: bold",
+        ),
+        Text(
+            str(time.beat_type),
+            insert=(staff_measure_point.x + 60,
+                    staff_measure_point.y + staff_prop.staff_line_offset * 5),
+            fill="rgb(0,0,0)",
+            style=f"font-size:{staff_prop.staff_line_offset * 2.5}; font-family:Arial; font-weight: bold",
+        )]
