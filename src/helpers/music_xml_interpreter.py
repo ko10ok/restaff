@@ -1,8 +1,8 @@
 from collections import namedtuple
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from .notation_markup.measures import guess_measure_octave
-from ..types import ScoreSheet, Part, Measure
+from ..types import ScoreSheet, Part, Measure, Note
 
 
 def get_staffs_count(sheet: ScoreSheet):
@@ -49,3 +49,14 @@ def analyze_times(parts: List[Part]) -> Dict[int, Dict[int, MeasureTime]]:
             last_measure_time = measure_time
     print(parted_measure_time)
     return parted_measure_time
+
+
+def analyze_chords(notes: List[Note]) -> List[Tuple[Note, Note]]:
+    chord_followed_notes = []
+    for note_idx in range(len(notes)):
+        print(f'{note_idx=}')
+        if note_idx != len(notes) - 1:
+            print(f'{notes[note_idx + 1].chord=}')
+            if notes[note_idx + 1].chord:
+                chord_followed_notes += [notes[note_idx]]
+    return chord_followed_notes

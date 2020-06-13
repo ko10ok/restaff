@@ -62,6 +62,7 @@ partial_note = NoteImage(
 # TODO make partial note filled draft
 note_signs = {
     'whole': whole_note,
+    'half': whole_note,
     'partial_note': partial_note
 }
 
@@ -97,7 +98,7 @@ def get_note_sign(note: Note):
     note_name = note.pitch.step + ['', '#', 'b'][note.pitch.alter]
     note_grade, note_orientation = notes_offsets[note_name]
 
-    note_type = [partial_note, whole_note][note.type == 'whole']
+    note_type = note_signs.get(note.type, note_signs['partial_note'])
     image_orientation = ['centred', 'upper', 'lower'][note_orientation]
     return getattr(note_type, image_orientation)
 

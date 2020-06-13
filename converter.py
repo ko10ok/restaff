@@ -8,7 +8,8 @@ from src.helpers import markup_title, staff_line, part_staff_positions, position
     title_place_heigh, staves_position_marker, read_music_xml, get_staffs_count, place_next_measure, render, \
     markup_measure, markup_measure_octave, notes_times, \
     get_note_sign, markup_note, calc_measure_length, fit_measure_length_in_page, correct_measure, get_rest_sign, \
-    markup_measure_time, get_parted_measures, get_note_position, analyze_octaves, analyze_times, debug_point
+    markup_measure_time, get_parted_measures, get_note_position, analyze_octaves, analyze_times, debug_point, \
+    analyze_chords
 from src.types import ScoreSheet, StaffProperties, PageProperties, Point, MeasurePosition, MeasureProperties, Note
 
 ## reads
@@ -179,17 +180,6 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
             }
 
             chord_stepout = True
-
-            def analyze_chords(notes: List[Note]) -> List[Tuple[Note, Note]]:
-
-                chord_followed_notes = []
-                for note_idx in range(len(notes)):
-                    print(f'{note_idx=}')
-                    if note_idx != len(notes) - 1:
-                        print(f'{notes[note_idx + 1].chord=}')
-                        if notes[note_idx + 1].chord:
-                            chord_followed_notes += [notes[note_idx]]
-                return chord_followed_notes
 
             chord_followed_notes = analyze_chords(parted_measures[part.info.id].notes)
             print(f'{chord_followed_notes=}')
