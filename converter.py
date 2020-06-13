@@ -1,5 +1,8 @@
 from pprint import pprint
 
+import svgwrite
+from svgwrite.shapes import Polyline, Circle
+
 from src.helpers import markup_title, staff_line, part_staff_positions, guess_measure_octave, position_part_staff, \
     title_place_heigh, staves_position_marker, read_music_xml, get_staffs_count, place_next_measure, render, \
     markup_measure, markup_measure_octave, notes_times, \
@@ -165,13 +168,59 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
 
                 chord_offset = (50 if note.chord else 0)
                 horizontal_note_position = note_offset[note.staff] + (chord_offset if chord_stepout else 0)
-                print(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
+                # print(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
 
                 print(f'{note=}')
                 if not note.rest:
                     vertical_note_position = part_position.y + get_note_position(staff_prop, staff_octave, note.pitch)
                     note_sign = get_note_sign(note)
                     objects += [markup_note(note_sign, Point(horizontal_note_position, vertical_note_position))]
+                    if note.dot:
+                        objects += [Circle(center=(
+                        horizontal_note_position + 35, vertical_note_position - staff_prop.staff_line_offset // 2),
+                                           r=4)]
+
+                    objects += []
+                    flag = {
+                        'whole': (0, 0),
+                        'half': (1, 0),
+                        'quarter': (1, 0),
+                        'eighth': (1, 1),
+                        '16th': (1, 2),
+                        '32nd': (1, 3),
+                    }
+                    stem, beams = flag[note.type]
+                    if stem:
+                        half_note_offset = 17.5
+                        stem_lenght = 80
+                        objects += [
+                            Polyline(
+                                points=[(horizontal_note_position + half_note_offset, vertical_note_position),
+                                        (horizontal_note_position + half_note_offset,
+                                         vertical_note_position - stem_lenght)]
+                            ).stroke(
+                                color=svgwrite.rgb(0, 0, 0),
+                                width=3,
+                                linejoin='bevel',
+                            )
+                        ]
+                        for idx in range(beams):
+                            half_note_offset = 17.5
+                            beam_length = 13
+                            beam_offset = idx * 15
+                            objects += [
+                                Polyline(
+                                    points=[(horizontal_note_position + half_note_offset,
+                                             vertical_note_position - stem_lenght + beam_offset + 10),
+                                            (horizontal_note_position + half_note_offset + beam_length,
+                                             vertical_note_position - stem_lenght + beam_offset + 10 + 30)]
+                                ).stroke(
+                                    color=svgwrite.rgb(0, 0, 0),
+                                    width=3,
+                                    linejoin='bevel',
+                                )
+                            ]
+
                 else:
                     vertical_note_position = part_position.y + staff_prop.staff_height // 2
                     note_sign = get_rest_sign(note)
@@ -188,17 +237,18 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                     chord_stepout = True
                     note_delta_offset[note.staff] = note_lenght + (note_lenght / 2 if note.dot else 0)
 
-                print(f'{note_offset=}')
-                print(f'{note_delta_offset=}')
+                # print(f'{note_offset=}')
+                # print(f'{note_delta_offset=}')
 
-    # markup measures:
-    #  start stops
-    #  octave sign (number)
-    #  notes
-    #  beams
-    #  stems
-    #  ligas
-    # markup cross measures ligas and signs
+    # [~] markup measures:
+    #  [x] start stops
+    #  [x] octave sign (number)
+    #  [~] notes
+    #  [~] beams
+    #  [~] stems
+    #  [~] dots
+    #  [ ] touplets
+    # [ ] markup cross measures ligas and signs
     yield objects
 
 
