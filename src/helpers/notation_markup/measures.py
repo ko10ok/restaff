@@ -19,7 +19,9 @@ def guess_measure_octave(measure: Measure) -> Dict[int, int]:
 
 
 # TODO reorganize measure guess
-def calc_measure_length(page_prop, staff_prop, measures: List[Measure]):
+def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, measures: List[Measure],
+                        measure_octave_draws, measure_time_draws,
+                        first_on_staff):
     avg_measures_per_page = 4
     avg_measure_length = (page_prop.width - staff_prop.right_offset - staff_prop.left_offset) // avg_measures_per_page
 
@@ -46,7 +48,12 @@ def calc_measure_length(page_prop, staff_prop, measures: List[Measure]):
     notes_count_multiplier = max_notes_count / avg_measures_per_page
     print(f'{beats=} {avg_measures_per_page=} {actual_max_notes_count=} {notes_count_multiplier=}')
 
-    result_measure_length = avg_measure_length * notes_count_multiplier
+    octave_left_offset = (staff_prop.measure_offsets.octave_left_offset if (first_on_staff or measure_octave_draws) else 0)
+    time_left_offset = (staff_prop.measure_offsets.time_left_offset if (first_on_staff or measure_time_draws) else 0)
+    measure_left_offset = staff_prop.measure_offsets.left_offset
+    measure_right_offset = staff_prop.measure_offsets.right_offset
+
+    result_measure_length = avg_measure_length * notes_count_multiplier + octave_left_offset + time_left_offset + measure_left_offset + measure_right_offset
     minimal_accepted_measure_length = staff_length // 8
     print(f'{result_measure_length=} {minimal_accepted_measure_length=}')
 

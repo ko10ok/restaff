@@ -4,6 +4,13 @@ from typing import NamedTuple, Any
 PageProperties = namedtuple('Page', ['width', 'height'])
 
 
+class MeasureProperties(NamedTuple):
+    octave_left_offset: Any
+    time_left_offset: Any
+    left_offset: Any
+    right_offset: Any
+
+
 class StaffProperties(NamedTuple):
     left_offset: Any
     right_offset: Any
@@ -14,6 +21,7 @@ class StaffProperties(NamedTuple):
     staff_offset: Any
     staff_count: Any
     parts_offset: Any
+    measure_offsets: MeasureProperties
 
     @property
     def staff_height(self):
