@@ -32,8 +32,8 @@ def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, 
         'whole': 20,
         'half': 40,
         'quarter': 70,
-        'eighth': 80,
-        '16th': 140,
+        'eighth': 110,
+        '16th': 150,
         '32nd': 220,
         '64nd': 330
     }
