@@ -25,15 +25,6 @@ def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Po
     return lines
 
 
-# TODO add pages?
-# def get_staff_position(page: PageProperties, staff_prop: StaffProperties, part_number, staff_number=0) -> Point:
-#     part_y_position = staff_prop.top_offset + (staff_prop.parts_height + staff_prop.parts_offset) * part_number
-#     staff_y_position = part_y_position + (staff_prop.staff_height + staff_prop.staff_offset) * staff_number
-#     assert staff_y_position <= page.height, 'To far on page'
-#
-#     return Point(x=staff_prop.left_offset, y=staff_y_position)
-
-
 # exctract paging logic to basic offset
 def staves_position_paginator_marker(page_prop: PageProperties, staff_prop: StaffProperties):
     page = 0
@@ -110,27 +101,18 @@ def resolve_part_staff(sheet: ScoreSheet, part_id, staff):
     return staff_map[part_id][staff]
 
 
-# def part_staff_positions(staff_prop: StaffProperties, offset_point: Point, sheet: ScoreSheet):
-#     staffs_positions = staff_position_marker(staff_prop, offset_point)
-#     staffs_ids = []
-#     for part in sheet.parts:
-#         staves = part.measures[0].staves
-#         for staff in range(1, part.staff_count + 1):
-#             staffs_ids += [(part.info.id, staff + 1)]
-#             print(part.info.id, staff)
-#     return dict(zip(staffs_ids, staffs_positions))
-
 def position_part_staff(staff_prop: StaffProperties, offset_point: Point, sheet: ScoreSheet, part_id, staff):
     staffs_positions = staff_position_marker(staff_prop, offset_point)
     stuff_number = resolve_part_staff(sheet, part_id, staff)
     return list(staffs_positions)[stuff_number]
 
 
-def markup_measure(staff_prop: StaffProperties, staves_position, measure_number, measure_placement: MeasurePosition):
+def markup_measure(staff_prop: StaffProperties, staves_position, height, measure_number,
+                   measure_placement: MeasurePosition):
     return [
                Polyline(
                    points=[(measure_placement.start, staves_position.y),
-                           (measure_placement.start, staves_position.y + staff_prop.parts_height)]
+                           (measure_placement.start, staves_position.y + height)]
                ).stroke(
                    color=svgwrite.rgb(0, 0, 0),
                    width=2,
@@ -139,20 +121,24 @@ def markup_measure(staff_prop: StaffProperties, staves_position, measure_number,
            ] + ([
                     Polyline(
                         points=[(measure_placement.end, staves_position.y),
-                                (measure_placement.end, staves_position.y + staff_prop.parts_height)]
+                                (measure_placement.end, staves_position.y + height)]
                     ).stroke(
                         color=svgwrite.rgb(0, 0, 0),
                         width=2,
                         linejoin='bevel',
                     )
-                ] if measure_placement.last_on_staff else []) + ([
-                                                                     Text(
-                                                                         str(measure_number),
-                                                                         insert=(measure_placement.start - 5,
-                                                                                 staves_position.y - 10),
-                                                                         fill="rgb(0,0,0)",
-                                                                         style=f"font-size:{staff_prop.staff_line_offset}; font-family:Arial",
-                                                                     )] if measure_placement.first_on_staff or 'debug' else [])
+                ] if measure_placement.last_on_staff else []) + (
+               [
+                   Text(
+                       str(measure_number),
+                       insert=(measure_placement.start - 5,
+                               staves_position.y - 10),
+                       fill="rgb(0,0,0)",
+                       style=f"font-size:{staff_prop.staff_line_offset}; font-family:Arial",
+                   )
+               ] if measure_placement.first_on_staff or 'debug' else []
+           )
+
 
 def markup_measure_octave(staff_prop: StaffProperties, octave_text, staff_measure_point):
     x = staff_measure_point.x + 25

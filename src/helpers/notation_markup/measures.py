@@ -1,7 +1,7 @@
 from itertools import groupby
 from typing import List, Dict
 
-from ...types import Measure, StaffProperties, PageProperties, MeasurePosition
+from ...types import Measure, StaffProperties, PageProperties, MeasurePosition, MeasurePlacement
 
 
 def guess_measure_octave(measure: Measure) -> Dict[int, int]:
@@ -124,7 +124,7 @@ def place_next_measure(page_prop, staff_prop, last_measure_placement: MeasurePos
     #     last_on_staff = True
     #     measure_end_position = page_staff_end
 
-    return MeasurePosition(
+    return MeasurePlacement(
         last_measure_placement.end, measure_end_position,
         first_on_staff=last_measure_placement.last_on_staff,
         last_on_staff=last_on_staff
