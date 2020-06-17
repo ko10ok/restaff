@@ -1,29 +1,15 @@
 from itertools import groupby
-from typing import List, Dict
+from typing import List
 
-from ...types import Measure, StaffProperties, PageProperties, MeasurePosition, MeasurePlacement
-
-
-def guess_measure_octave(measure: Measure) -> Dict[int, int]:
-    notes = {k: list(v) for k, v in groupby(measure.notes, lambda x: x.staff)}
-    from statistics import median
-    octaves = {}
-    for k, v in notes.items():
-        note_pitches = [n.pitch.octave for n in v if n.pitch]
-        try:
-            octaves[k] = int(median(note_pitches))
-        except:
-            octaves[k] = None
-
-    return octaves
+from src.types import Measure, StaffProperties, PageProperties, MeasurePosition, MeasurePlacement
 
 
 # TODO reorganize measure guess
 def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, measures: List[Measure],
                         measure_octave_draws, measure_time_draws,
                         first_on_staff):
-
-    octave_left_offset = (staff_prop.measure_offsets.octave_left_offset if (first_on_staff or measure_octave_draws) else 0)
+    octave_left_offset = (
+        staff_prop.measure_offsets.octave_left_offset if (first_on_staff or measure_octave_draws) else 0)
     time_left_offset = (staff_prop.measure_offsets.time_left_offset if (first_on_staff or measure_time_draws) else 0)
     measure_left_offset = staff_prop.measure_offsets.left_offset
     measure_right_offset = staff_prop.measure_offsets.right_offset
@@ -40,7 +26,8 @@ def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, 
 
     measure_staff_grouped_notes = [groupby(measure.notes, lambda x: x.staff) for measure in measures]
     measure_notes_type = [
-        [[{note.type:comfort_notesize.get(note.type, comfort_notesize['whole'])} for note in notes if not note.chord] for staff, notes in staff_grouped_notes]
+        [[{note.type: comfort_notesize.get(note.type, comfort_notesize['whole'])} for note in notes if not note.chord]
+         for staff, notes in staff_grouped_notes]
         for staff_grouped_notes in measure_staff_grouped_notes
     ]
     print(f'{measure_notes_type=}')

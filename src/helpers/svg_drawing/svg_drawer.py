@@ -3,7 +3,7 @@ from typing import List
 import svgwrite
 from svgwrite.base import BaseElement
 
-from ..types import PageProperties
+from src.types import PageProperties
 
 
 # TODO (?) split render result objects from BaseElement drawing object

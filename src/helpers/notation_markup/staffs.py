@@ -173,3 +173,11 @@ def markup_measure_time(staff_prop: StaffProperties, time: TimeMeasure, staff_me
             fill="rgb(0,0,0)",
             style=f"font-size:{staff_prop.staff_line_offset * 2.5}; font-family:Arial; font-weight: bold",
         )]
+
+
+def markup_part(page_prop: PageProperties, staff_prop: StaffProperties, staff_positions):
+    objects = []
+    for staff, position in staff_positions.items():
+        staves_position = Point(staff_prop.left_offset, position)
+        objects += staff_line(page_prop, staff_prop, staves_position)
+    return objects
