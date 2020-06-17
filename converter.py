@@ -16,44 +16,14 @@ from src.helpers import markup_title, staff_line, title_place_heigh, read_music_
 from src.types import ScoreSheet, StaffProperties, PageProperties, Point, MeasureProperties, Part, \
     MeasurePlacement
 
-## reads
-music_xml_sheet = read_music_xml('examples/musicxml/His Theme chords at 25.musicxml')
-pprint(music_xml_sheet)
-sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
-pprint(sheet)
-
-page_prop = PageProperties(width=2977.2, height=4208.4)
-
-## setup
-measure_prop = MeasureProperties(
-    octave_left_offset=50,
-    time_left_offset=50,
-    left_offset=100,
-    right_offset=50,
-)
-
-staff_prop = StaffProperties(
-    left_offset=194.232,
-    right_offset=2977.2 - 2835.47,
-    top_offset=366.733,
-    bottom_offset=50,
-    staff_line_offset=25,
-    staff_line_count=7,
-    staff_offset=80,
-    staff_count=get_staffs_count(sheet),
-    parts_offset=140,
-    measure_offsets=measure_prop,
-)
-
-default_octave = 5
-
 MeasureDrawing = namedtuple('MeasureDrawing',
                             ['start', 'end', 'left_offset', 'right_offset', 'octave_draws', 'time_draws',
                              'first_on_staff',
                              'last_on_staff'])
 
 
-def analyze_parts_height(parts: List[Part], staff_octave_draws, current_measure_idx, measures_count):
+def analyze_parts_height(staff_prop: StaffProperties, parts: List[Part], staff_octave_draws, current_measure_idx,
+                         measures_count):
     top_offset = {}
     bottom_offset = {}
     for part in parts:
@@ -98,7 +68,7 @@ def place_staffs_measures(page_prop: PageProperties,
 
     measure_placement = MeasurePlacement(0, staff_prop.left_offset, first_on_staff=False, last_on_staff=True)
 
-    total_measures_count = max([len(part.measures) for part in sheet.parts])
+    total_measures_count = max([len(part.measures) for part in parts])
     for measure_index in range(start_measure_idx, total_measures_count):
         print(f'--------------- {measure_index+1=} -----------------')
 
@@ -347,7 +317,7 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
         if first_staff:
             staves_vertical_position += title_place_heigh(page_prop, staff_prop)
 
-        parted_staffs_placement = analyze_parts_height(sheet.parts, staff_octave_draws, current_measure_idx,
+        parted_staffs_placement = analyze_parts_height(staff_prop, sheet.parts, staff_octave_draws, current_measure_idx,
                                                        len(drawable_staff_measures))
         print(f'{parted_staffs_placement=}')
 
@@ -478,6 +448,37 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
     #  ~  - needs refactoring or partial solution
     yield objects
 
+
+## reads
+music_xml_sheet = read_music_xml('examples/musicxml/His Theme chords at 25.musicxml')
+pprint(music_xml_sheet)
+sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
+pprint(sheet)
+
+page_prop = PageProperties(width=2977.2, height=4208.4)
+
+## setup
+measure_prop = MeasureProperties(
+    octave_left_offset=50,
+    time_left_offset=50,
+    left_offset=100,
+    right_offset=50,
+)
+
+staff_prop = StaffProperties(
+    left_offset=194.232,
+    right_offset=2977.2 - 2835.47,
+    top_offset=366.733,
+    bottom_offset=50,
+    staff_line_offset=25,
+    staff_line_count=7,
+    staff_offset=80,
+    staff_count=get_staffs_count(sheet),
+    parts_offset=140,
+    measure_offsets=measure_prop,
+)
+
+default_octave = 5
 
 markup = markup_score_sheet(page_prop, staff_prop, sheet)
 
