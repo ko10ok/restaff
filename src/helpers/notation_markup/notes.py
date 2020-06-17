@@ -110,7 +110,7 @@ def get_rest_sign(note: Note):
         return rest_signs[note.type]
 
 
-def markup_note(sign, note_position: Point):
+def markup_note_body(sign, note_position: Point):
     return Path(d=moved_path(sign, note_position.x, note_position.y))
 
     #

@@ -9,10 +9,10 @@ from svgwrite.text import Text
 from src.helpers import markup_title, staff_line, title_place_heigh, read_music_xml, \
     get_staffs_count, place_next_measure, render, \
     markup_measure, markup_measure_octave, notes_times, \
-    get_note_sign, markup_note, calc_measure_length, fit_measure_length_in_page, correct_measure, get_rest_sign, \
+    get_note_sign, calc_measure_length, fit_measure_length_in_page, correct_measure, get_rest_sign, \
     markup_measure_time, get_parted_measures, get_note_position, analyze_octaves, analyze_times, analyze_chords, \
     analyze_parts_staffs_octaves, flat_measured_parted_staff, analyze_parts_staffs_times, analyze_octave_drawing, \
-    analyze_time_drawing
+    analyze_time_drawing, markup_note_body
 from src.types import ScoreSheet, StaffProperties, PageProperties, Point, MeasureProperties, Part, \
     MeasurePlacement
 
@@ -192,6 +192,117 @@ def markup_part(staff_positions):
     return objects
 
 
+def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave, horizontal_note_position, chord_offset,
+                chord_stepout, note, chord_followed_notes):
+    not_chord_note = not note.chord and note not in chord_followed_notes
+    chord_note = note.chord or note in chord_followed_notes
+    last_chord_note = note.chord and note not in chord_followed_notes
+    first_chord_note = not note.chord and note in chord_followed_notes
+
+    objects = []
+
+    note_offset = get_note_position(staff_prop, staff_octave, note.pitch)
+
+    vertical_note_position = staff_start_position + note_offset
+
+    note_sign = get_note_sign(note)
+    objects += [markup_note_body(
+        note_sign,
+        Point(
+            horizontal_note_position + (chord_offset if chord_stepout else 0),
+            vertical_note_position
+        )
+    )]
+
+    if note.dot:
+        addition = note_offset % staff_prop.staff_line_offset - staff_prop.staff_line_offset / 2
+        objects += [
+            Circle(
+                center=(
+                    horizontal_note_position + 35 + chord_offset,
+                    vertical_note_position + addition
+                ),
+                r=4)
+        ]
+
+    if note.time_modification:
+        objects += [Text(
+            str(note.time_modification['actual-notes']),
+            insert=(
+                horizontal_note_position,
+                staff_start_position - staff_prop.staff_offset // 2),
+            fill="rgb(110,110,110)",
+            style="font-size:15px; font-family:Arial",
+        )]
+
+    objects += []
+    flag = {
+        'whole': (0, 0),
+        'half': (1, 0),
+        'quarter': (1, 0),
+        'eighth': (1, 1),
+        '16th': (1, 2),
+        '32nd': (1, 3),
+    }
+    stem, beams = flag[note.type]
+    if stem:
+        half_note_offset = 17.5
+        stem_lenght = 80
+        objects += [
+            Polyline(
+                points=[(horizontal_note_position + half_note_offset, vertical_note_position),
+                        (horizontal_note_position + half_note_offset,
+                         vertical_note_position - stem_lenght)]
+            ).stroke(
+                color=svgwrite.rgb(0, 0, 0),
+                width=3,
+                linejoin='bevel',
+            )
+        ]
+
+        # TODO extract beam|stemm drawing into note groups drawing
+        print(f'{not_chord_note=} {last_chord_note=} {first_chord_note=}')
+        if not_chord_note or last_chord_note:
+            for idx in range(beams):
+                half_note_offset = 17.5
+                beam_length = 13
+                beam_offset = idx * 15
+                objects += [
+                    Polyline(
+                        points=[(horizontal_note_position + half_note_offset,
+                                 vertical_note_position - stem_lenght + beam_offset + 10),
+                                (horizontal_note_position + half_note_offset + beam_length,
+                                 vertical_note_position - stem_lenght + beam_offset + 10 + 30)]
+                    ).stroke(
+                        color=svgwrite.rgb(0, 0, 0),
+                        width=3,
+                        linejoin='bevel',
+                    )
+                ]
+
+    return objects
+
+
+def calc_note_length(measure, time, note):
+    note_lenght = (measure.end - measure.start - measure.left_offset - measure.right_offset) \
+                  / (notes_times[note.type] if note.type else notes_times['whole'])
+
+    note_lenght *= (time.beat_type / time.beats)
+
+    if note.dot:
+        note_lenght += note_lenght / 2
+
+    if note.time_modification:
+        print(f'{note.time_modification=}')
+        actual = note.time_modification['actual-notes']
+        normal = note.time_modification['normal-notes']
+        note_lenght_multiplier = int(normal) / int(actual)
+        print(f'{note.time_modification} {note_lenght_multiplier}')
+        note_lenght = note_lenght * note_lenght_multiplier
+
+    return note_lenght
+
+
 ## marking up
 def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, sheet: ScoreSheet):
     objects = []
@@ -310,100 +421,29 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                     horizontal_note_position = note_offset[note.staff]
                     # print(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
 
+                    staff_start_position = staff_positions[note.staff]
+
                     print(f'{note=}')
                     if not note.rest:
-                        vertical_note_position = staff_positions[note.staff] + get_note_position(staff_prop,
-                                                                                                 staff_octave,
-                                                                                                 note.pitch)
-                        note_sign = get_note_sign(note)
-                        objects += [markup_note(note_sign,
-                                                Point(horizontal_note_position + (chord_offset if chord_stepout else 0),
-                                                      vertical_note_position))]
-                        if note.dot:
-                            objects += [
-                                Circle(
-                                    center=(
-                                        horizontal_note_position + 35 + chord_offset,
-                                        vertical_note_position - staff_prop.staff_line_offset // 2
-                                    ),
-                                    r=4)
-                            ]
-
-                        if note.time_modification:
-                            objects += [Text(
-                                str(note.time_modification['actual-notes']),
-                                insert=(
-                                    horizontal_note_position,
-                                    staff_positions[note.staff] - staff_prop.staff_offset // 2),
-                                fill="rgb(110,110,110)",
-                                style="font-size:15px; font-family:Arial",
-                            )]
-
-                        objects += []
-                        flag = {
-                            'whole': (0, 0),
-                            'half': (1, 0),
-                            'quarter': (1, 0),
-                            'eighth': (1, 1),
-                            '16th': (1, 2),
-                            '32nd': (1, 3),
-                        }
-                        stem, beams = flag[note.type]
-                        if stem:
-                            half_note_offset = 17.5
-                            stem_lenght = 80
-                            objects += [
-                                Polyline(
-                                    points=[(horizontal_note_position + half_note_offset, vertical_note_position),
-                                            (horizontal_note_position + half_note_offset,
-                                             vertical_note_position - stem_lenght)]
-                                ).stroke(
-                                    color=svgwrite.rgb(0, 0, 0),
-                                    width=3,
-                                    linejoin='bevel',
-                                )
-                            ]
-
-                            print(f'{not_chord_note=} {last_chord_note=} {first_chord_note=}')
-                            if not_chord_note or last_chord_note:
-                                for idx in range(beams):
-                                    half_note_offset = 17.5
-                                    beam_length = 13
-                                    beam_offset = idx * 15
-                                    objects += [
-                                        Polyline(
-                                            points=[(horizontal_note_position + half_note_offset,
-                                                     vertical_note_position - stem_lenght + beam_offset + 10),
-                                                    (horizontal_note_position + half_note_offset + beam_length,
-                                                     vertical_note_position - stem_lenght + beam_offset + 10 + 30)]
-                                        ).stroke(
-                                            color=svgwrite.rgb(0, 0, 0),
-                                            width=3,
-                                            linejoin='bevel',
-                                        )
-                                    ]
-
+                        objects += markup_note(
+                            staff_prop=staff_prop,
+                            staff_start_position=staff_start_position,
+                            staff_octave=staff_octave,
+                            horizontal_note_position=horizontal_note_position,
+                            chord_offset=chord_offset,
+                            chord_stepout=chord_stepout,
+                            note=note,
+                            chord_followed_notes=chord_followed_notes
+                        )
                     else:
-                        vertical_rest_position = staff_positions[note.staff] + staff_prop.staff_height // 2
+                        vertical_rest_position = staff_start_position + staff_prop.staff_height // 2
                         note_sign = get_rest_sign(note)
-                        objects += [markup_note(note_sign, Point(horizontal_note_position, vertical_rest_position))]
+                        objects += [
+                            markup_note_body(note_sign, Point(horizontal_note_position, vertical_rest_position))
+                        ]
 
                     time = parted_measures[part.info.id].time
-                    note_lenght = (measure.end - measure.start - measure.left_offset - measure.right_offset) \
-                                  / (notes_times[note.type] if note.type else notes_times['whole'])
-
-                    note_lenght *= (time.beat_type / time.beats)
-
-                    if note.dot:
-                        note_lenght += note_lenght / 2
-
-                    if note.time_modification:
-                        print(f'{note.time_modification=}')
-                        actual = note.time_modification['actual-notes']
-                        normal = note.time_modification['normal-notes']
-                        note_lenght_multiplier = int(normal) / int(actual)
-                        print(f'{note.time_modification} {note_lenght_multiplier}')
-                        note_lenght = note_lenght * note_lenght_multiplier
+                    note_lenght = calc_note_length(measure, time, note)
 
                     if first_chord_note:
                         chord_cord_minimal_len = note_lenght
@@ -428,10 +468,10 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
     # [~] markup measures:
     #  [x] start stops
     #  [x] octave sign (number)
-    #  [~] notes
+    #  [x] notes
     #  [~] beams
     #  [~] stems
-    #  [~] dots
+    #  [x] dots
     #  [~] chords
     #  [~] tuplets
     # [ ] markup cross measures ligas and signs
