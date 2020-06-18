@@ -186,7 +186,7 @@ def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave,
         ]
 
         # TODO extract beam|stemm drawing into note groups drawing
-        print(f'{not_chord_note=} {last_chord_note=} {first_chord_note=}')
+        # print(f'{not_chord_note=} {last_chord_note=} {first_chord_note=}')
         if not_chord_note or last_chord_note:
             for idx in range(beams):
                 half_note_offset = 17.5
