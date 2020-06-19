@@ -1,10 +1,9 @@
 from collections import namedtuple
-from pprint import pprint
 
 from src.helpers import calc_note_length, markup_note_body, get_rest_sign, markup_note, analyze_chords, \
     markup_measure_octave, markup_measure_time, markup_measure, get_parted_measures, markup_part, title_place_heigh, \
     flat_measured_parted_staff, analyze_parts_staffs_times, analyze_parts_staffs_octaves, analyze_times, \
-    analyze_octaves, markup_title, debug_point
+    analyze_octaves, markup_title
 from src.markups.parts import analyze_parts_height
 from src.markups.staffs import part_height, part_staffs_positions, place_staffs_measures
 from src.types import Point, PageProperties, StaffProperties, ScoreSheet
@@ -76,9 +75,6 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
             print(f'{current_measure_idx=} {part.info.id=} {staff_positions=}')
 
             objects += markup_part(page_prop, staff_prop, staff_positions)
-            objects += [debug_point(Point(50, part_vertical_position + parted_staffs_placement[(part.info.id, 1)].top_offset))]
-            objects += [debug_point(Point(70, part_vertical_position + parted_staffs_placement[(part.info.id, 1)].top_offset + parted_staffs_placement[(part.info.id, 1)].heigth))]
-            objects += [debug_point(Point(90, part_vertical_position + parted_staffs_placement[(part.info.id, 1)].top_offset + parted_staffs_placement[(part.info.id, 1)].heigth + parted_staffs_placement[(part.info.id, 1)].bottom_offset))]
 
             for idx, measure in enumerate(drawable_staff_measures):
 
@@ -89,7 +85,7 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                 position = Point(staff_prop.left_offset, part_vertical_position)
                 measure_height = part_height(staff_prop, part, parted_staffs_placement)
 
-                objects += markup_measure(staff_prop, position, measure_height, measure_idx, measure)
+                objects += markup_measure(staff_prop, position, measure_height, measure_idx + 1, measure)
 
                 for staff in range(1, part.staff_count + 1):
                     staff_measure_position = Point(measure.start, staff_positions[staff])
@@ -132,6 +128,8 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
 
                     staff_start_position = staff_positions[note.staff]
 
+                    # TODO draw stems beams on group drawing
+                    # TODO fix chord stems should be at top of chord
                     print(f'{note=}')
                     if not note.rest:
                         objects += markup_note(

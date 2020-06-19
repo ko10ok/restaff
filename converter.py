@@ -6,10 +6,10 @@ from src.markups.sheet import markup_score_sheet
 from src.types import ScoreSheet, StaffProperties, PageProperties, MeasureProperties
 
 ## reads
-music_xml_sheet = read_music_xml('examples/musicxml/His Theme chords at 25.musicxml')
+music_xml_sheet = read_music_xml('examples/musicxml/notmania_ru-Ballade_pour_Adeline_.xml')
 pprint(music_xml_sheet)
 sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
-pprint(sheet)
+# pprint(sheet)
 
 page_prop = PageProperties(width=2977.2, height=4208.4)
 

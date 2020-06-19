@@ -1,4 +1,5 @@
 from typing import NamedTuple, Any, Optional
+from uuid import uuid4
 
 
 class NotePitch(NamedTuple):
@@ -28,6 +29,7 @@ class NoteDisplayParams(NamedTuple):
 
 
 class Note(NamedTuple):
+    id: Any
     staff: Any
     voice: Any
     pitch: Any
@@ -53,6 +55,7 @@ class Note(NamedTuple):
         )
         staff = music_xml_note.get('staff', None)
         return Note(
+            id = str(uuid4()),
             staff=int(staff) if staff else 1,  # for instruments with multiple staffs
             voice=int(music_xml_note.get('voice')),  # optional division
             rest=is_rest_note,
