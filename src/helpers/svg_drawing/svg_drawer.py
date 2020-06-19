@@ -10,10 +10,8 @@ from src.types import PageProperties
 def render(page_prop: PageProperties, objects: List[BaseElement], file_path, page_number):
     view_box = '{} {} {} {}'.format(0, 0, page_prop.width, page_prop.height)
 
-    file_path = 'exhaust/music_xml_out_{page_number}.svg'
-
     dwg = svgwrite.Drawing(
-        file_path.format(page_number=page_number),
+        file_path,
         size=(f'{page_prop.width}px', f'{page_prop.height}px'),
         profile='tiny',
         viewBox=view_box
