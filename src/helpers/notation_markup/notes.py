@@ -134,7 +134,7 @@ def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave,
     objects += [markup_note_body(
         note_sign,
         Point(
-            horizontal_note_position + (chord_offset if chord_stepout else 0),
+            horizontal_note_position + chord_offset,
             vertical_note_position
         )
     )]

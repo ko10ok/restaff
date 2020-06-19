@@ -122,7 +122,8 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                     last_chord_note = note.chord and note not in chord_followed_notes
                     first_chord_note = not note.chord and note in chord_followed_notes
 
-                    chord_offset = (37 if chord_note else 0)
+                    chord_offset = (37 if chord_stepout else 0)
+                    print(f'{chord_note=} {chord_offset=} {last_chord_note=} {chord_stepout=}')
                     horizontal_note_position = note_offset[note.staff]
                     # print(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
 
