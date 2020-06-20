@@ -7,14 +7,12 @@ from .measure import Measure
 class PartInfo(NamedTuple):
     id: int
     part_name: str
-    part_abbreviation: str
 
     @classmethod
     def from_part_list(cls, score_part):
         return PartInfo(
             id=score_part['@id'],
             part_name=score_part['part-name'],
-            part_abbreviation=score_part['part-abbreviation'],
         )
 
 
