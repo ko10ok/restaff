@@ -141,7 +141,7 @@ def analyze_time_drawing(staff_time_draws, measure_index, first_on_staff):
     ]) or first_on_staff
 
 
-def analyze_chords(notes: List[Note]) -> List[Tuple[Note, Note]]:
+def analyze_chord_followed_notes(notes: List[Note]) -> List[Tuple[Note, Note]]:
     chord_followed_notes = []
     for note_idx in range(len(notes)):
         if note_idx != len(notes) - 1:
