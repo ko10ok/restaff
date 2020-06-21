@@ -3,7 +3,7 @@ import os
 from pprint import pprint
 
 from src.helpers import read_music_xml, \
-    get_staffs_count, render
+    get_staffs_count, render, read_compressed_music_xml
 from src.markups.sheet import markup_score_sheet
 from src.types import ScoreSheet, StaffProperties, PageProperties, MeasureProperties
 
@@ -25,7 +25,12 @@ if __name__ == '__main__':
     print(f'Rendering {input_file_full_path} into {output_directory}/{file_pattern}')
 
     ## reads
-    music_xml_sheet = read_music_xml(input_file_full_path)
+    if '.mxl' in input_file_full_path:
+        music_xml_sheet = read_compressed_music_xml(input_file_full_path)
+    elif 'musicxml' in input_file_full_path:
+        music_xml_sheet = read_music_xml(input_file_full_path)
+    else:
+        exit(1)
     pprint(music_xml_sheet)
     sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
     # pprint(sheet)
