@@ -29,7 +29,7 @@ def place_staffs_measures(page_prop: PageProperties,
         parted_measures = get_parted_measures(parts, measure_index)
         measure_length = calc_measure_length(page_prop, staff_prop, parted_measures.values(),
                                              measure_octave_offset_draws,
-                                             measure_time_offset_draws, last_measure_placement.end)
+                                             measure_time_offset_draws, first_on_staff)
 
         # if current first measure wider then staff length
         if last_measure_placement.last_on_staff:

@@ -28,7 +28,7 @@ class Measure(NamedTuple):
 
     @classmethod
     def from_xml_measure(self, xml_measure, last_measure_attributes):
-        notes = [Note.from_music_xml_note(note) for note in xml_measure.get('note')]
+        notes = [Note.from_music_xml_note(note) for note in xml_measure.get('note') or []]
         print(f'{xml_measure}')
         return Measure(
             number=int(xml_measure.get('@number')),

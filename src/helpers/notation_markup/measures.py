@@ -8,8 +8,8 @@ from src.types import Measure, StaffProperties, PageProperties, MeasurePosition,
 def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, measures: List[Measure],
                         measure_octave_draws, measure_time_draws,
                         first_on_staff):
-    octave_left_offset = (
-        staff_prop.measure_offsets.octave_left_offset if (first_on_staff or measure_octave_draws) else 0)
+    print(f'{first_on_staff=} ,{measure_octave_draws=} ,{measure_time_draws=}')
+    octave_left_offset = (staff_prop.measure_offsets.octave_left_offset if (first_on_staff or measure_octave_draws) else 0)
     time_left_offset = (staff_prop.measure_offsets.time_left_offset if (first_on_staff or measure_time_draws) else 0)
     measure_left_offset = staff_prop.measure_offsets.left_offset
     measure_right_offset = staff_prop.measure_offsets.right_offset
@@ -17,7 +17,7 @@ def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, 
     comfort_notesize = {
         'whole': 20,
         'half': 40,
-        'quarter': 70,
+        'quarter': 90,
         'eighth': 110,
         '16th': 150,
         '32nd': 220,
@@ -33,14 +33,14 @@ def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, 
     print(f'{measure_notes_type=}')
 
     max_measure_notes_length = max([
-        max([sum([sum([length for type, length in note.items()]) for note in staff]) for staff in parts])
+        max([sum([sum([length for type, length in note.items()]) for note in staff]) for staff in parts] or [0])
         for parts in measure_notes_type
-    ])
+    ] or [0])
     measure_length = max_measure_notes_length + octave_left_offset + time_left_offset + measure_left_offset + measure_right_offset
 
     staff_length = page_prop.width - staff_prop.right_offset - staff_prop.left_offset
     minimal_accepted_measure_length = staff_length // 8
-    print(f'{measure_length=} {minimal_accepted_measure_length=}')
+    print(f'{measure_length=} {minimal_accepted_measure_length=} {octave_left_offset=} {time_left_offset=}')
 
     return max(measure_length, minimal_accepted_measure_length)
 

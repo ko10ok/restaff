@@ -41,11 +41,13 @@ def analyze_octaves(parts: List[Part]) -> Dict[int, Dict[int, MeasureOctave]]:
             if measure.number not in parted_measure_octaves:
                 parted_measure_octaves[measure.number] = {}
 
-            guessed_staff_octave = guess_measure_octave(measure)
+            guessed_staff_octave = guess_measure_octave(measure) or {staff: None for staff in
+                                                                     range(1, part.staff_count + 1)}
+            print(f'{measure.number=} {part.info.id=} {guessed_staff_octave=}')
             octave_changed = last_measure_guessed_staff_octave != guessed_staff_octave
             parted_measure_octaves[measure.number][part.info.id] = MeasureOctave(guessed_staff_octave, octave_changed)
             last_measure_guessed_staff_octave = guessed_staff_octave
-    print(f'{parted_measure_octaves}')
+    print(f'{parted_measure_octaves=}')
     return parted_measure_octaves
 
 
@@ -76,7 +78,8 @@ def analyze_parts_staffs_octaves(parts: List[Part]) -> Dict[int, Dict[str, Dict[
             if measure_idx not in parted_measure_octaves:
                 parted_measure_octaves[measure_idx] = {}
 
-            guessed_staff_octave = guess_measure_octave(measure)
+            guessed_staff_octave = guess_measure_octave(measure) or {staff: None for staff in
+                                                                     range(1, part.staff_count + 1)}
 
             default_octave = 5
             for staff, octave in guessed_staff_octave.items():
@@ -138,7 +141,7 @@ def analyze_time_drawing(staff_time_draws, measure_index, first_on_staff):
     ]) or first_on_staff
 
 
-def analyze_chords(notes: List[Note]) -> List[Tuple[Note, Note]]:
+def analyze_chord_followed_notes(notes: List[Note]) -> List[Tuple[Note, Note]]:
     chord_followed_notes = []
     for note_idx in range(len(notes)):
         if note_idx != len(notes) - 1:
@@ -181,4 +184,3 @@ def analyze_parts_height(staff_prop: StaffProperties, parts: List[Part], staff_o
         for part in parts
         for staff in range(1, part.staff_count + 1)
     }
-

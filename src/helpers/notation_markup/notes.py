@@ -118,11 +118,10 @@ def markup_note_body(sign, note_position: Point):
 
 
 def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave, horizontal_note_position, chord_offset,
-                chord_stepout, note, chord_followed_notes):
-    not_chord_note = not note.chord and note not in chord_followed_notes
-    chord_note = note.chord or note in chord_followed_notes
-    last_chord_note = note.chord and note not in chord_followed_notes
-    first_chord_note = not note.chord and note in chord_followed_notes
+                chord_stepout, note, chords_notes):
+    not_chord_note = note.id not in chords_notes
+    chord_note = note.id in chords_notes
+    last_chord_note = chord_note and chords_notes.get(note.id, {}).last
 
     objects = []
 
@@ -134,7 +133,7 @@ def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave,
     objects += [markup_note_body(
         note_sign,
         Point(
-            horizontal_note_position + (chord_offset if chord_stepout else 0),
+            horizontal_note_position + chord_offset,
             vertical_note_position
         )
     )]

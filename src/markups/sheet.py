@@ -1,9 +1,10 @@
 from collections import namedtuple
 
-from src.helpers import calc_note_length, markup_note_body, get_rest_sign, markup_note, analyze_chords, \
-    markup_measure_octave, markup_measure_time, markup_measure, get_parted_measures, markup_part, title_place_heigh, \
+from src.helpers import calc_note_length, markup_note_body, get_rest_sign, markup_note, markup_measure_octave, \
+    markup_measure_time, markup_measure, get_parted_measures, markup_part, title_place_heigh, \
     flat_measured_parted_staff, analyze_parts_staffs_times, analyze_parts_staffs_octaves, analyze_times, \
-    analyze_octaves, markup_title
+    analyze_octaves, markup_title, analyze_chord_followed_notes
+from src.markups.chords import markup_chords
 from src.markups.parts import analyze_parts_height
 from src.markups.staffs import part_height, part_staffs_positions, place_staffs_measures
 from src.types import Point, PageProperties, StaffProperties, ScoreSheet
@@ -112,8 +113,9 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
 
                 chord_stepout = False
 
-                chord_followed_notes = analyze_chords(parted_measures[part.info.id].notes)
-                print(f'{chord_followed_notes=}')
+                chord_followed_notes = analyze_chord_followed_notes(parted_measures[part.info.id].notes)
+                chords_notes = markup_chords(parted_measures[part.info.id].notes)
+
                 for note in parted_measures[part.info.id].notes:
                     staff_octave = staff_octave_draws[(measure_idx, part.info.id, note.staff)].octave
 
@@ -121,8 +123,10 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                     chord_note = note.chord or note in chord_followed_notes
                     last_chord_note = note.chord and note not in chord_followed_notes
                     first_chord_note = not note.chord and note in chord_followed_notes
+                    chord_stepout = chord_note and chords_notes.get(note.id, {}).offset
 
-                    chord_offset = (37 if chord_note else 0)
+                    chord_offset = (37 if chord_stepout else 0)
+                    print(f'{chord_note=} {chord_offset=} {last_chord_note=} {chord_stepout=}')
                     horizontal_note_position = note_offset[note.staff]
                     # print(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
 
@@ -140,7 +144,7 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                             chord_offset=chord_offset,
                             chord_stepout=chord_stepout,
                             note=note,
-                            chord_followed_notes=chord_followed_notes
+                            chords_notes=chords_notes
                         )
                     else:
                         vertical_rest_position = staff_start_position + staff_prop.staff_height // 2
@@ -155,16 +159,12 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                     if first_chord_note:
                         chord_cord_minimal_len = note_lenght
 
-                    if chord_note:
-                        chord_stepout = not chord_stepout
-
                     if not_chord_note:
                         note_offset[note.staff] += note_lenght
                         chord_stepout = False
 
                     if last_chord_note:
                         note_offset[note.staff] += chord_cord_minimal_len
-                        chord_stepout = False
 
             part_vertical_position += part_height(staff_prop, part, parted_staffs_placement) + staff_prop.staff_offset
 
