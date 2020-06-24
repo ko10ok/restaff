@@ -1,9 +1,8 @@
 import argparse
 import os
-from pprint import pprint
 
-from src.helpers import read_music_xml, \
-    get_staffs_count, render, read_compressed_music_xml
+from src.helpers import render_pdf, render_svgs, cleanup_temp_files, read_music_xml, get_staffs_count, \
+    read_compressed_music_xml
 from src.markups.sheet import markup_score_sheet
 from src.types import ScoreSheet, StaffProperties, PageProperties, MeasureProperties
 
@@ -14,15 +13,20 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--input-file', action='store', help='input file path', required=True)
     parser.add_argument('-o', '--output-dir', action='store', help='output directory path, default=input file path',
                         default=None)
-    parser.add_argument('-p', '--filename-pattern', action='store', help='output directory path',
-                        default='rendered-scores-{}.svg')
+    parser.add_argument('--pdf', action='store', help='output file name', default='rendered-scores.pdf')
+    parser.add_argument('--keep-tmp', action='store_true', help='output directory path', default=False)
 
     args = parser.parse_args()
 
     input_file_full_path = args.input_file
     output_directory = args.output_dir or os.path.dirname(os.path.abspath(input_file_full_path))
-    file_pattern = args.filename_pattern
-    print(f'Rendering {input_file_full_path} into {output_directory}/{file_pattern}')
+    output_directory = "exhaust"
+    tmp_file_pattern = 'rendered-scores-{}.svg'
+    keep_tmp_files = args.keep_tmp
+    pdf_file_name = args.pdf
+
+    print(f'args: {args}')
+    print(f'Rendering {input_file_full_path} into {output_directory}/{pdf_file_name}')
 
     ## reads
     if '.mxl' in input_file_full_path:
@@ -31,7 +35,7 @@ if __name__ == '__main__':
         music_xml_sheet = read_music_xml(input_file_full_path)
     else:
         exit(1)
-    pprint(music_xml_sheet)
+    # pprint(music_xml_sheet)
     sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
     # pprint(sheet)
 
@@ -58,8 +62,14 @@ if __name__ == '__main__':
         measure_offsets=measure_prop,
     )
 
-    file_path = f'{output_directory}/{file_pattern}'
+    marked_pages = markup_score_sheet(page_prop, staff_prop, sheet)
 
-    ## marking up and render
-    for page_idx, page_markup in enumerate(markup_score_sheet(page_prop, staff_prop, sheet)):
-        render(page_prop, page_markup, file_path.format(page_idx), page_idx)
+    file_path_pattern = f'{output_directory}/{tmp_file_pattern}'
+
+    rendered_svg = render_svgs(page_prop, marked_pages, file_path_pattern)
+
+    full_pdf_file_name = f'{output_directory}/{pdf_file_name}'
+    render_pdf(rendered_svg, full_pdf_file_name)
+
+    if not keep_tmp_files:
+        cleanup_temp_files(rendered_svg)
