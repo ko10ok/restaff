@@ -1,6 +1,8 @@
 from typing import List
 
 import svgwrite
+from reportlab.graphics import renderPDF
+from svglib.svglib import svg2rlg
 from svgwrite.base import BaseElement
 
 from src.types import PageProperties
@@ -20,3 +22,26 @@ def render(page_prop: PageProperties, objects: List[BaseElement], file_path, pag
     for obj in objects:
         dwg.add(obj)
     dwg.save(pretty=True)
+
+
+def render_svgs(page_prop: PageProperties, marked_pages, file_path_pattern):
+    pages_files = []
+    for page_idx, page_markup in enumerate(marked_pages):
+        full_file_name = file_path_pattern.format(page_idx)
+        render(page_prop, page_markup, full_file_name, page_idx)
+        pages_files += [full_file_name]
+    return pages_files
+
+
+def render_pdf(pages_files, pdf_file_name):
+    from reportlab.pdfgen import canvas
+    cnvs = canvas.Canvas(pdf_file_name)
+    for page_file in pages_files:
+        print(f'Rendering {page_file} to {pdf_file_name}')
+
+        rl_score_image = svg2rlg(page_file)
+
+        cnvs.setPageSize((rl_score_image.width, rl_score_image.height))
+        renderPDF.draw(rl_score_image, cnvs, 0, 0)
+        cnvs.showPage()
+    cnvs.save()
