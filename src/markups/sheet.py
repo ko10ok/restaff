@@ -45,6 +45,7 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
     first_staff = True
     staves_vertical_position = 0
 
+    # TODO not eq -> lt
     while current_measure_idx != total_measures_count:
         drawable_staff_measures = place_staffs_measures(page_prop, staff_prop, sheet.parts,
                                                         current_measure_idx, staff_octave_draws, staff_time_draws)
@@ -80,6 +81,7 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
             for idx, measure in enumerate(drawable_staff_measures):
 
                 measure_idx = current_measure_idx + idx
+                print(f'{measure_idx=}')
 
                 parted_measures = get_parted_measures(sheet.parts, measure_idx)
 
