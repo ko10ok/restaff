@@ -1,14 +1,15 @@
 # D-based half-step music staff
 ## Short intro
 * 12 - notes notation
-* hand-writting possible staff markup
+* hand-writting staff markup possibility
 * acceptable compaction (3 lines per octave)
 * note pitch and note height-on-staff correlation ("half-sign" note looks higher then "whole-sign" 'cause visual mass center and means higher note)
 * using same visual style for all notes (without pitch-based filling on "#" "b")
 * no pitch extra signs "#" "b", alliteration keys, staff keys which moves staff unexpectedly
 * explicit octave hook, octaves marks as octave number (0, 1 - ...)
-* stable note position (E note always lay on the solid line in any octave)
+* stable note position (example: "E" note always lay between the solid and firts dotted line in any octave, "A" always half note under 2nd dotted line)
 * each note have staff near (no floating in middle notes) to easily note differentiation
+* equidistant intervals over all notes (interval visually have same distance starting from any note)
 * 5-7 staff dividing for symmetric visual hooks in D (solid line) and F#/Gb, A#/Bb (dotted lines) (sub symmetry in 7 group)
 
 
@@ -30,6 +31,7 @@ D     |-------⃝--|--|--|--|--|------|-----|------     <- solid line
 ```
 
 ## Example results
+* [Intervals](./examples/results/Intervals.pdf)
 * [Blondie Readhat - For the damaged Coda (Part)](./examples/results/ForTheDammagedCoda.pdf)
 * [Toby Fox - Waterfall (part)](./examples/results/Waterfall.pdf)
 
