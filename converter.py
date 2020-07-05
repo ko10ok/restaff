@@ -11,22 +11,20 @@ if __name__ == '__main__':
         description='Processing not compressed music xml into svg rendered score pages with alternative music notation'
     )
     parser.add_argument('-i', '--input-file', action='store', help='input file path', required=True)
-    parser.add_argument('-o', '--output-dir', action='store', help='output directory path, default=input file path',
-                        default=None)
-    parser.add_argument('--pdf', action='store', help='output file name', default='rendered-scores.pdf')
-    parser.add_argument('--keep-tmp', action='store_true', help='output directory path', default=False)
+    parser.add_argument('--pdf', action='store', help='output file path', default='rendered-scores.pdf')
+    parser.add_argument('--keep-tmp', action='store_true', help='store temperal svg pictures', default=False)
+    parser.add_argument('-o', '--output-dir', action='store', help='temperal files output directory path, default = input file path', default=None)
 
     args = parser.parse_args()
 
     input_file_full_path = args.input_file
     output_directory = args.output_dir or os.path.dirname(os.path.abspath(input_file_full_path))
-    output_directory = "exhaust"
     tmp_file_pattern = 'rendered-scores-{}.svg'
     keep_tmp_files = args.keep_tmp
     pdf_file_name = args.pdf
 
     print(f'args: {args}')
-    print(f'Rendering {input_file_full_path} into {output_directory}/{pdf_file_name}')
+    print(f'Rendering {input_file_full_path} into {pdf_file_name}')
 
     ## reads
     if '.mxl' in input_file_full_path:
@@ -68,7 +66,7 @@ if __name__ == '__main__':
 
     rendered_svg = render_svgs(page_prop, marked_pages, file_path_pattern)
 
-    full_pdf_file_name = f'{output_directory}/{pdf_file_name}'
+    full_pdf_file_name = f'{pdf_file_name}'
     render_pdf(rendered_svg, full_pdf_file_name)
 
     if not keep_tmp_files:
