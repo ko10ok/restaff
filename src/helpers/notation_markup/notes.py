@@ -83,7 +83,7 @@ def get_note_name(note_pitch: NotePitch):
     return note_pitch.step + ['', '#', 'b'][note_pitch.alter]
 
 
-def get_note_position(staff_prop, staff_base_octave, note: Note) -> int:
+def get_note_position(staff_prop, staff_base_octave, note: NotePitch) -> int:
     last_line = (staff_prop.staff_line_count - 1) * staff_prop.staff_line_offset
 
     octave_offset = staff_prop.staff_line_offset * 3  # 2 lines 3 spaces divides 1 octave
@@ -118,7 +118,7 @@ def markup_note_body(sign, note_position: Point):
 
 
 def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave, horizontal_note_position, chord_offset,
-                chord_stepout, note, chords_notes):
+                note, chords_notes):
     not_chord_note = note.id not in chords_notes
     chord_note = note.id in chords_notes
     last_chord_note = chord_note and chords_notes.get(note.id, {}).last

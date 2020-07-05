@@ -20,7 +20,7 @@ def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Po
             linejoin='bevel',
         )
         if dotted_lines[i]:
-            line.dasharray([2])
+            line.dasharray([5, 7])
         lines.append(line)
     return lines
 
@@ -180,4 +180,55 @@ def markup_part(page_prop: PageProperties, staff_prop: StaffProperties, staff_po
     for staff, position in staff_positions.items():
         staves_position = Point(staff_prop.left_offset, position)
         objects += staff_line(page_prop, staff_prop, staves_position)
+    return objects
+
+
+def markup_extra_staffs(staff_prop: StaffProperties, staff_start_position, horizontal_note_position,
+                        note_vertical_offset):
+    objects = []
+    if note_vertical_offset < 0:
+        count = abs(int(
+            (note_vertical_offset) // staff_prop.staff_line_offset))
+
+        for idx in range(1, count + 1):
+            y = staff_start_position - idx * staff_prop.staff_line_offset
+            line = Polyline(
+                points=[(horizontal_note_position - 40, y),
+                        (horizontal_note_position + 50, y)]
+            ).stroke(
+                color=svgwrite.rgb(0, 0, 0),
+                width=2,
+                linejoin='bevel',
+            )
+
+            dotted_lines = {
+                0: True,
+                1: False,
+                2: True,
+            }
+            if dotted_lines[idx % 3]:
+                line.dasharray([5, 7])
+            objects += [line]
+
+    if note_vertical_offset > staff_prop.staff_height:
+        count = int((note_vertical_offset - staff_prop.staff_height) // staff_prop.staff_line_offset)
+        for idx in range(1, count + 1):
+            y = staff_start_position + staff_prop.staff_height + idx * staff_prop.staff_line_offset
+            line = Polyline(
+                points=[(horizontal_note_position - 40, y),
+                        (horizontal_note_position + 50, y)]
+            ).stroke(
+                color=svgwrite.rgb(0, 0, 0),
+                width=2,
+                linejoin='bevel',
+            )
+
+            dotted_lines = {
+                0: True,
+                1: True,
+                2: False,
+            }
+            if dotted_lines[idx % 3]:
+                line.dasharray([5, 7])
+            objects += [line]
     return objects
