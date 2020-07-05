@@ -3,7 +3,7 @@ from collections import namedtuple
 from src.helpers import calc_note_length, markup_note_body, get_rest_sign, markup_note, markup_measure_octave, \
     markup_measure_time, markup_measure, get_parted_measures, markup_part, title_place_heigh, \
     flat_measured_parted_staff, analyze_parts_staffs_times, analyze_parts_staffs_octaves, analyze_times, \
-    analyze_octaves, markup_title, analyze_chord_followed_notes
+    analyze_octaves, markup_title, analyze_chord_followed_notes, get_note_position, markup_extra_staffs
 from src.markups.chords import markup_chords
 from src.markups.parts import analyze_parts_height
 from src.markups.staffs import part_height, part_staffs_positions, place_staffs_measures
@@ -144,10 +144,14 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                             staff_octave=staff_octave,
                             horizontal_note_position=horizontal_note_position,
                             chord_offset=chord_offset,
-                            chord_stepout=chord_stepout,
                             note=note,
                             chords_notes=chords_notes
                         )
+
+                        note_vertical_offset = get_note_position(staff_prop, staff_octave, note.pitch)
+                        objects += markup_extra_staffs(staff_prop, staff_start_position, horizontal_note_position,
+                                                       note_vertical_offset)
+
                     else:
                         vertical_rest_position = staff_start_position + staff_prop.staff_height // 2
                         note_sign = get_rest_sign(note)
