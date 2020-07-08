@@ -1,8 +1,8 @@
 from typing import List, Dict
 
-from src.helpers import analyze_chord_followed_notes
-from src.types import Note
-from src.types.notation_markup.note import ChordNote
+from restaff.helpers import analyze_chord_followed_notes
+from restaff.types import Note
+from restaff.types import ChordNote
 
 
 def markup_chords(notes: List[Note]) -> Dict:
@@ -24,7 +24,7 @@ def markup_chords(notes: List[Note]) -> Dict:
 
         if last_chord_note:
             chord_number += 1
-    print(f'{chords=}')
+    logger.debug(f'{chords=}')
 
     def note_rank(note):
         note_pitch = note.pitch
@@ -33,7 +33,7 @@ def markup_chords(notes: List[Note]) -> Dict:
 
     result_chord = {}
     for idx, chord_notes in chords.items():
-        print(f'{chord_notes=}')
+        logger.debug(f'{chord_notes=}')
         ordered_chord = sorted(chord_notes, key=note_rank)
         offset = True
         result_chord.update({
@@ -41,5 +41,5 @@ def markup_chords(notes: List[Note]) -> Dict:
             for position, note in enumerate(ordered_chord)
         })
 
-    print(f'{result_chord=}')
+    logger.debug(f'{result_chord=}')
     return result_chord

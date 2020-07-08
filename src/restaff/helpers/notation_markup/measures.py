@@ -1,14 +1,14 @@
 from itertools import groupby
 from typing import List
 
-from src.types import Measure, StaffProperties, PageProperties, MeasurePosition, MeasurePlacement
+from restaff.types import Measure, StaffProperties, PageProperties, MeasurePosition, MeasurePlacement
 
 
 # TODO reorganize measure guess
 def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, measures: List[Measure],
                         measure_octave_draws, measure_time_draws,
                         first_on_staff):
-    print(f'{first_on_staff=} ,{measure_octave_draws=} ,{measure_time_draws=}')
+    logger.debug(f'{first_on_staff=} ,{measure_octave_draws=} ,{measure_time_draws=}')
     octave_left_offset = (staff_prop.measure_offsets.octave_left_offset if (first_on_staff or measure_octave_draws) else 0)
     time_left_offset = (staff_prop.measure_offsets.time_left_offset if (first_on_staff or measure_time_draws) else 0)
     measure_left_offset = staff_prop.measure_offsets.left_offset
@@ -30,7 +30,7 @@ def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, 
          for staff, notes in staff_grouped_notes]
         for staff_grouped_notes in measure_staff_grouped_notes
     ]
-    print(f'{measure_notes_type=}')
+    logger.debug(f'{measure_notes_type=}')
 
     max_measure_notes_length = max([
         max([sum([sum([length for type, length in note.items()]) for note in staff]) for staff in parts] or [0])
@@ -40,7 +40,7 @@ def calc_measure_length(page_prop: PageProperties, staff_prop: StaffProperties, 
 
     staff_length = page_prop.width - staff_prop.right_offset - staff_prop.left_offset
     minimal_accepted_measure_length = staff_length // 8
-    print(f'{measure_length=} {minimal_accepted_measure_length=} {octave_left_offset=} {time_left_offset=}')
+    logger.debug(f'{measure_length=} {minimal_accepted_measure_length=} {octave_left_offset=} {time_left_offset=}')
 
     return max(measure_length, minimal_accepted_measure_length)
 
@@ -67,7 +67,7 @@ def max_guess_parted_measure_length(
         max([len(list(notes)) for staff, notes in groupby(measure.notes, lambda x: x.staff)])
         for measure in measures
     ])
-    print(f'{max_notes_count=}')
+    logger.debug(f'{max_notes_count=}')
     notes_count_multiplier = max(max_notes_count / 8, 0.5)
 
     suggested_measure_count = page_width_left // (avg_measure_length * notes_count_multiplier)
@@ -76,8 +76,8 @@ def max_guess_parted_measure_length(
 
     suggested_length = round(page_width_left // suggested_measure_count, 3)
 
-    print(f'{avg_measure_length=} {suggested_measure_count=}')
-    print(f'{page_width_left=} {measures_left_count=} {suggested_length=}')
+    logger.debug(f'{avg_measure_length=} {suggested_measure_count=}')
+    logger.debug(f'{page_width_left=} {measures_left_count=} {suggested_length=}')
     return suggested_length
 
 
@@ -86,7 +86,7 @@ def guess_measure_length(page_prop, staff_prop, total_measures_count, measures, 
     measures_left_count = total_measures_count - measure_number
     page_width_left = page_staff_end - measure_start_position
 
-    print(f'{page_width_left=} {measure_start_position=} {measures_left_count=}')
+    logger.debug(f'{page_width_left=} {measure_start_position=} {measures_left_count=}')
     measure_length = max_guess_parted_measure_length(
         page_prop=page_prop,
         staff_prop=staff_prop,

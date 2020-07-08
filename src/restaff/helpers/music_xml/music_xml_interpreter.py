@@ -2,7 +2,7 @@ from collections import namedtuple
 from itertools import groupby
 from typing import List, Dict, Tuple, Any
 
-from src.types import ScoreSheet, Part, Measure, Note, StaffProperties
+from restaff.types import ScoreSheet, Part, Measure, Note, StaffProperties
 
 
 def guess_measure_octave(measure: Measure) -> Dict[int, int]:
@@ -43,11 +43,11 @@ def analyze_octaves(parts: List[Part]) -> Dict[int, Dict[int, MeasureOctave]]:
 
             guessed_staff_octave = guess_measure_octave(measure) or {staff: None for staff in
                                                                      range(1, part.staff_count + 1)}
-            print(f'{measure.number=} {part.info.id=} {guessed_staff_octave=}')
+            logger.debug(f'{measure.number=} {part.info.id=} {guessed_staff_octave=}')
             octave_changed = last_measure_guessed_staff_octave != guessed_staff_octave
             parted_measure_octaves[measure.number][part.info.id] = MeasureOctave(guessed_staff_octave, octave_changed)
             last_measure_guessed_staff_octave = guessed_staff_octave
-    print(f'{parted_measure_octaves=}')
+    logger.debug(f'{parted_measure_octaves=}')
     return parted_measure_octaves
 
 
@@ -63,7 +63,7 @@ def analyze_times(parts: List[Part]) -> Dict[int, Dict[int, MeasureTime]]:
             octave_changed = last_measure_time != measure_time
             parted_measure_time[measure.number][part.info.id] = MeasureTime(measure_time, octave_changed)
             last_measure_time = measure_time
-    print(f'{parted_measure_time}')
+    logger.debug(f'{parted_measure_time}')
     return parted_measure_time
 
 
@@ -86,7 +86,7 @@ def analyze_parts_staffs_octaves(parts: List[Part]) -> Dict[int, Dict[str, Dict[
                 if not octave:
                     guessed_staff_octave[staff] = last_measure_guessed_staff_octave.get(staff, default_octave)
 
-            print(f'{measure_idx=} {guessed_staff_octave=} {last_measure_guessed_staff_octave=}')
+            logger.debug(f'{measure_idx=} {guessed_staff_octave=} {last_measure_guessed_staff_octave=}')
             octave_changed = last_measure_guessed_staff_octave != guessed_staff_octave
             parted_measure_octaves[measure_idx][part.info.id] = {
                 staff: OctaveChanges(octave, octave_changed)
@@ -116,7 +116,7 @@ def analyze_parts_staffs_times(parts: List[Part]) -> Dict[int, Dict[str, Dict[in
                 for staff in range(1, part.staff_count + 1)
             }
             last_measure_time = measure_time
-    print(f'{parted_measure_time}')
+    logger.debug(f'{parted_measure_time}')
     return parted_measure_time
 
 

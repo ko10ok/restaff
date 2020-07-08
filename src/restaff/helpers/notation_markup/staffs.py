@@ -80,7 +80,7 @@ def part_staff_positions(staff_prop: StaffProperties, offset_point: Point, sheet
         voices = part.measures[0].staves
         for staff in range(voices):
             staffs_ids += [(part.info.id, staff + 1)]
-            print(part.info.id, staff)
+            logger.debug(part.info.id, staff)
     return dict(zip(staffs_ids, staffs_positions))
 
 

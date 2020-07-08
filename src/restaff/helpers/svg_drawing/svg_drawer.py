@@ -5,7 +5,7 @@ from reportlab.graphics import renderPDF
 from svglib.svglib import svg2rlg
 from svgwrite.base import BaseElement
 
-from src.types import PageProperties
+from restaff.types import PageProperties
 
 
 # TODO (?) split render result objects from BaseElement drawing object
@@ -37,7 +37,7 @@ def render_pdf(pages_files, pdf_file_name):
     from reportlab.pdfgen import canvas
     cnvs = canvas.Canvas(pdf_file_name)
     for page_file in pages_files:
-        print(f'Rendering {page_file} to {pdf_file_name}')
+        logger.debug(f'Rendering {page_file} to {pdf_file_name}')
 
         rl_score_image = svg2rlg(page_file)
 

@@ -1,0 +1,6 @@
+version: 2.3
+
+services:
+  app:
+    build: .
+    expose: "80:5000"

@@ -1,4 +1,3 @@
-import os
 import zipfile
 
 from xmltodict import parse as xml_parse
@@ -13,8 +12,9 @@ def read_music_xml(file_path):
 def read_compressed_music_xml(file_path):
     file = zipfile.ZipFile(file_path, 'r')
 
-    name = os.path.basename(file_path)
-    music_xml_file = file.open(name.replace('.mxl', '.xml'), 'r')
+    file_name = [file for file in file.filelist if 'META-INF' not in file.filename]
+    assert len(file_name) == 1, file_name
+    music_xml_file = file.open(file_name.pop(), 'r')
 
     result = music_xml_file.read()
     return xml_parse(result, force_list=['score-part', 'part', 'note', 'measure', 'creator'])

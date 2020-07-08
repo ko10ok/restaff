@@ -1,13 +1,13 @@
 from collections import namedtuple
 
-from src.helpers import calc_note_length, markup_note_body, get_rest_sign, markup_note, markup_measure_octave, \
+from restaff.helpers import calc_note_length, markup_note_body, get_rest_sign, markup_note, markup_measure_octave, \
     markup_measure_time, markup_measure, get_parted_measures, markup_part, title_place_heigh, \
     flat_measured_parted_staff, analyze_parts_staffs_times, analyze_parts_staffs_octaves, analyze_times, \
     analyze_octaves, markup_title, analyze_chord_followed_notes, get_note_position, markup_extra_staffs
-from src.markups.chords import markup_chords
-from src.markups.parts import analyze_parts_height
-from src.markups.staffs import part_height, part_staffs_positions, place_staffs_measures
-from src.types import Point, PageProperties, StaffProperties, ScoreSheet
+from restaff.markups.chords import markup_chords
+from restaff.markups.parts import analyze_parts_height
+from restaff.markups.staffs import part_height, part_staffs_positions, place_staffs_measures
+from restaff.types import Point, PageProperties, StaffProperties, ScoreSheet
 
 
 def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, sheet: ScoreSheet):
@@ -20,8 +20,8 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
     staves_position = Point(staff_prop.left_offset, staff_prop.top_offset)
     parted_measure_octaves = analyze_octaves(sheet.parts)
     parted_measure_times = analyze_times(sheet.parts)
-    print(f'{parted_measure_octaves=}')
-    print(f'{parted_measure_times=}')
+    logger.debug(f'{parted_measure_octaves=}')
+    logger.debug(f'{parted_measure_times=}')
 
     parted_measure_octaves = analyze_parts_staffs_octaves(sheet.parts)
     measures_octaves_changes = flat_measured_parted_staff(parted_measure_octaves)
@@ -38,8 +38,8 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
         k: TimeDraws(time_changes.time, time_changes.is_changed)
         for k, time_changes in measures_times_changes.items()
     }
-    print(f'{staff_octave_draws=}')
-    print(f'{staff_time_draws=}')
+    logger.debug(f'{staff_octave_draws=}')
+    logger.debug(f'{staff_time_draws=}')
 
     current_measure_idx = 0
     first_staff = True
@@ -49,39 +49,39 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
     while current_measure_idx != total_measures_count:
         drawable_staff_measures = place_staffs_measures(page_prop, staff_prop, sheet.parts,
                                                         current_measure_idx, staff_octave_draws, staff_time_draws)
-        print(f'{drawable_staff_measures=}')
+        logger.debug(f'{drawable_staff_measures=}')
 
         if first_staff:
             staves_vertical_position += title_place_heigh(page_prop, staff_prop)
 
         parted_staffs_placement = analyze_parts_height(staff_prop, sheet.parts, staff_octave_draws, current_measure_idx,
                                                        len(drawable_staff_measures))
-        print(f'{parted_staffs_placement=}')
+        logger.debug(f'{parted_staffs_placement=}')
 
         staves_height = sum([staff_placement.total_height for staff_placement in
                              parted_staffs_placement.values()]) + staff_prop.staff_offset * (
                                 len(parted_staffs_placement) - 1)
 
-        print(f'{staves_vertical_position=} {staves_height=} {page_prop.height - staff_prop.bottom_offset=}')
+        logger.debug(f'{staves_vertical_position=} {staves_height=} {page_prop.height - staff_prop.bottom_offset=}')
 
         if staves_vertical_position + staves_height >= page_prop.height - staff_prop.bottom_offset:
             yield objects
             objects = []
             staves_vertical_position = staff_prop.top_offset
-            print('===============  next page =======================')
+            logger.debug('===============  next page =======================')
 
         part_vertical_position = staves_vertical_position
         for part in sheet.parts:
 
             staff_positions = part_staffs_positions(staff_prop, part, part_vertical_position, parted_staffs_placement)
-            print(f'{current_measure_idx=} {part.info.id=} {staff_positions=}')
+            logger.debug(f'{current_measure_idx=} {part.info.id=} {staff_positions=}')
 
             objects += markup_part(page_prop, staff_prop, staff_positions)
 
             for idx, measure in enumerate(drawable_staff_measures):
 
                 measure_idx = current_measure_idx + idx
-                print(f'{measure_idx=}')
+                logger.debug(f'{measure_idx=}')
 
                 parted_measures = get_parted_measures(sheet.parts, measure_idx)
 
@@ -128,15 +128,15 @@ def markup_score_sheet(page_prop: PageProperties, staff_prop: StaffProperties, s
                     chord_stepout = chord_note and chords_notes.get(note.id, {}).offset
 
                     chord_offset = (37 if chord_stepout else 0)
-                    print(f'{chord_note=} {chord_offset=} {last_chord_note=} {chord_stepout=}')
+                    logger.debug(f'{chord_note=} {chord_offset=} {last_chord_note=} {chord_stepout=}')
                     horizontal_note_position = note_offset[note.staff]
-                    # print(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
+                    # logger.debug(f'{chord_offset=} {chord_stepout=} {note_offset[note.staff]=} {horizontal_note_position=}')
 
                     staff_start_position = staff_positions[note.staff]
 
                     # TODO draw stems beams on group drawing
                     # TODO fix chord stems should be at top of chord
-                    print(f'{note=}')
+                    logger.debug(f'{note=}')
                     if not note.rest:
                         objects += markup_note(
                             staff_prop=staff_prop,

@@ -1,8 +1,8 @@
 from typing import List
 
-from src.helpers import analyze_octave_drawing, analyze_time_drawing, get_parted_measures, calc_measure_length, \
+from restaff.helpers import analyze_octave_drawing, analyze_time_drawing, get_parted_measures, calc_measure_length, \
     fit_measure_length_in_page, place_next_measure, correct_measure
-from src.types import PageProperties, StaffProperties, Part, MeasurePlacement, MeasureDrawing
+from restaff.types import PageProperties, StaffProperties, Part, MeasurePlacement, MeasureDrawing
 
 
 def place_staffs_measures(page_prop: PageProperties,
@@ -17,7 +17,7 @@ def place_staffs_measures(page_prop: PageProperties,
 
     total_measures_count = max([len(part.measures) for part in parts])
     for measure_index in range(start_measure_idx, total_measures_count):
-        print(f'--------------- {measure_index+1=} -----------------')
+        logger.debug(f'--------------- {measure_index+1=} -----------------')
 
         last_measure_placement = measure_placement
         first_on_staff = last_measure_placement.last_on_staff

@@ -1,10 +1,18 @@
 import argparse
+import builtins
+import logging
 import os
 
-from src.helpers import render_pdf, render_svgs, cleanup_temp_files, read_music_xml, get_staffs_count, \
+from restaff.helpers import render_pdf, render_svgs, cleanup_temp_files, read_music_xml, get_staffs_count, \
     read_compressed_music_xml
-from src.markups.sheet import markup_score_sheet
-from src.types import ScoreSheet, StaffProperties, PageProperties, MeasureProperties
+from restaff.markups import markup_score_sheet
+from restaff.types import ScoreSheet, StaffProperties, PageProperties, MeasureProperties
+
+logging.basicConfig(level=logging.ERROR)
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+builtins.logger = logger
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -13,7 +21,8 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--input-file', action='store', help='input file path', required=True)
     parser.add_argument('--pdf', action='store', help='output file path', default='rendered-scores.pdf')
     parser.add_argument('--keep-tmp', action='store_true', help='store temperal svg pictures', default=False)
-    parser.add_argument('-o', '--output-dir', action='store', help='temperal files output directory path, default = input file path', default=None)
+    parser.add_argument('-o', '--output-dir', action='store',
+                        help='temperal files output directory path, default = input file path', default=None)
 
     args = parser.parse_args()
 

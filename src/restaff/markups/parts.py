@@ -1,8 +1,8 @@
 from collections import namedtuple
 from typing import List
 
-from src.helpers import get_note_position
-from src.types import StaffProperties, Part
+from restaff.helpers import get_note_position
+from restaff.types import StaffProperties, Part
 
 
 def analyze_parts_height(staff_prop: StaffProperties,

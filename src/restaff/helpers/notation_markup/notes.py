@@ -5,7 +5,7 @@ from svgwrite.path import Path
 from svgwrite.shapes import Circle, Polyline
 from svgwrite.text import Text
 
-from src.helpers.svg_drawing.path_editor import moved_path
+from restaff.helpers.svg_drawing import moved_path
 from ...types import NotePitch, Note, Point, StaffProperties
 
 # (multiplier from 1 staff line, lower upper half note)
@@ -185,7 +185,7 @@ def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave,
         ]
 
         # TODO extract beam|stemm drawing into note groups drawing
-        # print(f'{not_chord_note=} {last_chord_note=} {first_chord_note=}')
+        # logger.debug(f'{not_chord_note=} {last_chord_note=} {first_chord_note=}')
         if not_chord_note or last_chord_note:
             for idx in range(beams):
                 half_note_offset = 17.5
@@ -217,11 +217,11 @@ def calc_note_length(measure, time, note):
         note_lenght += note_lenght / 2
 
     if note.time_modification:
-        print(f'{note.time_modification=}')
+        logger.debug(f'{note.time_modification=}')
         actual = note.time_modification['actual-notes']
         normal = note.time_modification['normal-notes']
         note_lenght_multiplier = int(normal) / int(actual)
-        print(f'{note.time_modification} {note_lenght_multiplier}')
+        logger.debug(f'{note.time_modification} {note_lenght_multiplier}')
         note_lenght = note_lenght * note_lenght_multiplier
 
     return note_lenght
