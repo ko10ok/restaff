@@ -117,6 +117,14 @@ def markup_note_body(sign, note_position: Point):
     return Path(d=moved_path(sign, note_position.x, note_position.y))
 
 
+hooks = {
+    0: None,
+    1: "M0.000,25.000 L0.000,0.000 L3.125,0.000 C3.125,3.709 3.844,7.422 5.281,11.141 C6.844,15.172 8.568,18.688 10.453,21.688 C11.818,23.834 13.870,27.120 16.610,31.547 C18.693,34.933 20.451,38.479 21.883,42.188 C23.315,45.896 24.031,49.610 24.031,53.328 C24.031,60.099 22.630,67.000 19.828,74.032 C19.308,74.813 18.688,75.203 17.969,75.203 C17.323,75.203 16.740,74.943 16.219,74.422 C15.823,74.026 15.625,73.537 15.625,72.953 L15.625,72.469 C18.427,66.021 19.828,59.641 19.828,53.328 C19.828,50.068 18.849,46.552 16.891,42.782 C14.943,38.938 12.959,35.875 10.938,33.594 C8.656,30.927 6.052,28.063 3.125,25.000 L0.000,25.000",
+    2: "M3.125,0.000 C3.125,3.323 3.843,6.646 5.281,9.969 C6.645,13.219 8.338,16.308 10.359,19.235 L16.218,27.828 C18.166,30.505 19.859,33.599 21.297,37.110 C22.724,40.370 23.437,43.657 23.437,46.969 C23.437,50.032 22.656,53.224 21.093,56.547 C23.052,60.516 24.031,64.391 24.031,68.172 C24.031,74.162 22.630,80.282 19.828,86.532 C19.307,87.313 18.687,87.703 17.968,87.703 C17.323,87.703 16.739,87.443 16.218,86.922 C15.823,86.526 15.625,86.037 15.625,85.453 C15.625,85.453 15.625,85.292 15.625,84.969 C18.427,79.427 19.828,73.828 19.828,68.172 C19.828,65.630 19.338,63.287 18.359,61.141 C17.192,58.599 15.760,56.255 14.062,54.110 C11.916,51.308 10.224,49.287 8.984,48.047 C7.297,46.360 5.343,44.505 3.125,42.485 L3.125,50.000 L0.000,50.000 L0.000,0.000 L3.125,0.000 M18.453,51.657 C18.911,50.292 19.140,48.729 19.140,46.969 C19.140,44.698 18.687,42.391 17.781,40.047 C16.802,37.703 15.432,35.323 13.672,32.907 C12.047,30.896 10.385,28.912 8.687,26.953 C7.385,25.526 5.531,23.641 3.125,21.297 C3.125,23.964 3.677,26.792 4.781,29.782 C5.958,32.584 7.166,35.026 8.406,37.110 C9.833,39.328 11.588,41.836 13.672,44.633 C15.755,47.430 17.349,49.771 18.453,51.657",
+    3: "M3.125,21.188 L3.125,21.688 C3.125,24.552 3.646,27.250 4.687,29.782 C5.927,32.979 7.036,35.292 8.015,36.719 C9.703,39.261 11.396,41.672 13.094,43.953 C15.239,47.078 16.802,49.323 17.781,50.688 C18.041,49.844 18.172,48.735 18.172,47.360 C18.172,44.495 17.260,41.276 15.437,37.703 C13.541,33.985 11.750,31.120 10.062,29.110 C7.719,26.245 5.406,23.604 3.125,21.188 M3.125,0.000 C3.125,3.323 3.776,6.646 5.078,9.969 C6.317,13.094 7.948,16.219 9.969,19.344 L15.625,28.125 C17.583,31.052 19.213,34.177 20.515,37.500 C21.817,40.886 22.469,44.172 22.469,47.360 C22.469,50.037 21.817,52.771 20.515,55.563 C22.463,59.542 23.437,63.318 23.437,66.891 C23.437,70.349 22.625,73.834 21.000,77.344 C23.021,81.125 24.031,84.901 24.031,88.672 C24.031,94.464 22.630,100.292 19.828,106.157 C19.370,107.000 18.750,107.422 17.969,107.422 C17.323,107.422 16.739,107.162 16.219,106.641 C15.823,106.120 15.625,105.599 15.625,105.078 C15.625,105.078 15.625,104.948 15.625,104.688 C18.427,99.354 19.828,94.016 19.828,88.672 C19.828,84.568 18.265,80.563 15.140,76.657 C11.953,72.688 7.948,68.719 3.125,64.750 L3.125,75.000 L0.000,75.000 L0.000,0.000 L3.125,0.000 M3.125,42.969 L3.125,43.453 C3.125,45.995 3.677,48.729 4.781,51.657 C5.958,54.657 7.099,56.969 8.203,58.594 C8.922,59.636 10.682,62.047 13.484,65.828 C15.828,69.016 17.422,71.229 18.265,72.469 C18.849,70.646 19.140,68.787 19.140,66.891 C19.140,64.099 18.198,61.073 16.312,57.813 C14.614,54.823 12.692,52.219 10.547,50.000 C8.463,47.792 5.989,45.448 3.125,42.969"
+}
+
+
 def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave, horizontal_note_position, chord_offset,
                 note, chords_notes):
     not_chord_note = note.id not in chords_notes
@@ -162,48 +170,47 @@ def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave,
     objects += []
     flag = {
         'whole': (0, 0),
-        'half': (1, 0),
-        'quarter': (1, 0),
-        'eighth': (1, 1),
+        'half': (0.83, 0),
+        'quarter': (0.83, 0),
+        'eighth': (0.9, 1),
         '16th': (1, 2),
-        '32nd': (1, 3),
+        '32nd': (1.2, 3),
     }
-    stem, beams = flag[note.type]
-    if stem:
-        half_note_offset = 17.5
-        stem_lenght = 80
+
+    stem_length_multiplier, beam_count = flag[note.type]
+    if stem_length_multiplier:
+        half_note_offset = 18.2
+        stem_width = 3
+        stem_lenght = 85 * stem_length_multiplier
+        stem_offset = -0.5
         objects += [
             Polyline(
-                points=[(horizontal_note_position + half_note_offset, vertical_note_position),
+                points=[(horizontal_note_position + half_note_offset, vertical_note_position + stem_offset),
                         (horizontal_note_position + half_note_offset,
-                         vertical_note_position - stem_lenght)]
+                         vertical_note_position - stem_lenght + stem_offset)]
             ).stroke(
                 color=svgwrite.rgb(0, 0, 0),
-                width=3,
+                width=stem_width,
                 linejoin='bevel',
+                linecap="round",
             )
         ]
 
         # TODO extract beam|stemm drawing into note groups drawing
         # logger.debug(f'{not_chord_note=} {last_chord_note=} {first_chord_note=}')
         if not_chord_note or last_chord_note:
-            for idx in range(beams):
-                half_note_offset = 17.5
+            assert beam_count <= 3, f'max 32nd note, {beam_count=} given'
+            beam = hooks[beam_count]
+            if beam:
                 beam_length = 13
-                beam_offset = idx * 15
+                beam_offset = -0.5
                 objects += [
-                    Polyline(
-                        points=[(horizontal_note_position + half_note_offset,
-                                 vertical_note_position - stem_lenght + beam_offset + 10),
-                                (horizontal_note_position + half_note_offset + beam_length,
-                                 vertical_note_position - stem_lenght + beam_offset + 10 + 30)]
-                    ).stroke(
-                        color=svgwrite.rgb(0, 0, 0),
-                        width=3,
-                        linejoin='bevel',
-                    )
+                    Path(d=moved_path(
+                        beam,
+                        horizontal_note_position + half_note_offset - stem_width / 2,
+                        vertical_note_position - stem_lenght + beam_offset
+                    ))
                 ]
-
     return objects
 
 

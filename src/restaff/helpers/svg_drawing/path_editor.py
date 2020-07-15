@@ -22,8 +22,14 @@ def break_into_point_array(d: str):
 
 def moved_to_zero_path(d):
     points = break_into_point_array(d)
+
+    # center alignment
     min_x = (min([point[3] for point in points]) + max([point[3] for point in points])) / 2
     min_y = (min([point[4] for point in points]) + max([point[4] for point in points])) / 2
+
+    # left up alignment
+    min_x = min([point[3] for point in points])
+    min_y = min([point[4] for point in points])
 
     centred_path = ' '.join([
         f'{action if start_from else ""}{(x - min_x):.3f},{(y - min_y):.3f}'
