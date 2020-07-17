@@ -33,7 +33,7 @@ def parse_file(form):
     except KeyError:
         fileitem = None
 
-    input_file_name = fileitem.filename
+    input_file_name = str(fileitem.filename)
     input_file = fileitem.file
     content = input_file.read()
 
@@ -59,12 +59,12 @@ def parse_file(form):
     logger.info(f'Rendering {input_file_full_path} into {pdf_file_name}')
 
     ## reads
-    if '.mxl' in input_file_name:
+    if input_file_name.lower().endswith('.mxl'):
         music_xml_sheet = read_compressed_music_xml(input_file_full_path)
-    elif 'musicxml' in input_file_name:
+    elif input_file_name.lower().endswith('.musicxml') or input_file_name.lower().endswith('.xml'):
         music_xml_sheet = read_music_xml(input_file_full_path)
     else:
-        exit(1)
+        return web.Response(body=b'<html><body><h2>not supported format</h2><a href="/">back</a><body></html>', content_type='text/html', status=400)
     sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
 
     page_prop = PageProperties(width=2977.2, height=4208.4)
@@ -108,6 +108,7 @@ def parse_file(form):
 
 
 def application(environ, start_response):
+    extra_headers = []
     if environ.get('PATH_INFO') == '/':
         status = '200 OK'
         content = parse_file_form().encode('utf8')
@@ -115,14 +116,21 @@ def application(environ, start_response):
     elif environ.get('PATH_INFO') == '/restaff':
         # use cgi module to read data
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ, keep_blank_values=True)
-        status = '200 OK'
-        content = parse_file(form).body
-        content_type = 'application/pdf'
+        if 'music_file' in form:
+            res = parse_file(form)
+            status = str(res.status) + ' OK'
+            content = res.body
+            content_type = res.content_type
+        else:
+            status = '308 Permanent Redirect'
+            content = b''
+            content_type = 'text/html'
+            extra_headers = [('Location ', '/')]
     else:
         status = '404 NOT FOUND'
         content = 'Page not found.'.encode('utf8')
         content_type = 'text/html'
-    response_headers = [('Content-Type', content_type), ('Content-Length', str(len(content)))]
+    response_headers = [('Content-Type', content_type), ('Content-Length', str(len(content)))] + extra_headers
     start_response(status, response_headers)
     yield content
 
