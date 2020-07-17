@@ -133,3 +133,4 @@ dmypy.json
 
 # tmp result files
 exhaust/*
+src/tmp/*

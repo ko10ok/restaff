@@ -1,6 +1,7 @@
 import builtins
 import cgi
 import logging
+import os
 from uuid import uuid4
 
 from aiohttp import web
@@ -8,6 +9,7 @@ from aiohttp_wsgi import WSGIHandler
 
 from restaff.helpers import render_pdf, render_svgs, cleanup_temp_files, read_music_xml, get_staffs_count, \
     read_compressed_music_xml
+from restaff.helpers.murmur2 import murmur2
 from restaff.markups import markup_score_sheet
 from restaff.types import ScoreSheet, StaffProperties, PageProperties, MeasureProperties
 
@@ -35,14 +37,24 @@ def parse_file(form):
     input_file = fileitem.file
     content = input_file.read()
 
+    hash = murmur2(content)
+
     task_id = str(uuid4())
 
-    input_file_full_path = f'./tmp/input-{task_id}-tmp-file.mxml'
-    with open(input_file_full_path, 'wb') as file:
-        file.write(content)
+    input_file_full_path = f'./tmp/input-{hash}-tmp-file.mxml'
+    if not os.path.exists(input_file_full_path):
+        with open(input_file_full_path, 'wb') as file:
+            file.write(content)
 
     tmp_file_pattern = f'./tmp/rendered-svgs-{task_id}-{{}}.svg'
-    pdf_file_name = f'./tmp/rendered-pdf-{task_id}-{{}}.svg'
+
+    pdf_file_name = f'./tmp/rendered-pdf-{hash}.pdf'
+    if os.path.exists(pdf_file_name):
+        logger.info(f'already rendered {pdf_file_name}')
+        with open(pdf_file_name, 'rb') as file:
+            pdf = file.read()
+
+        return web.Response(body=pdf, content_type='application/pdf')
 
     logger.info(f'Rendering {input_file_full_path} into {pdf_file_name}')
 
@@ -90,7 +102,7 @@ def parse_file(form):
     with open(pdf_file_name, 'rb') as file:
         pdf = file.read()
 
-    cleanup_temp_files(rendered_svg + [input_file_full_path, pdf_file_name])
+    cleanup_temp_files(rendered_svg)
 
     return web.Response(body=pdf, content_type='application/pdf')
 
