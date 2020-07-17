@@ -55,9 +55,11 @@ def place_staffs_measures(page_prop: PageProperties,
 
         measure_left_offset = staff_prop.measure_offsets.left_offset
 
-        if measure_octave_offset_draws or measure_time_offset_draws:
+        if measure_time_offset_draws:
             measure_left_offset += staff_prop.measure_offsets.octave_left_offset
             measure_left_offset += staff_prop.measure_offsets.time_left_offset
+        elif measure_octave_offset_draws:
+            measure_left_offset += staff_prop.measure_offsets.octave_left_offset
 
         measure_right_offset = staff_prop.measure_offsets.right_offset
 
