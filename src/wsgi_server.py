@@ -1,8 +1,10 @@
 import builtins
+import cgi
 import logging
 from uuid import uuid4
 
 from aiohttp import web
+from aiohttp_wsgi import WSGIHandler
 
 from restaff.helpers import render_pdf, render_svgs, cleanup_temp_files, read_music_xml, get_staffs_count, \
     read_compressed_music_xml
@@ -16,17 +18,21 @@ logger.setLevel(logging.INFO)
 builtins.logger = logger
 
 
-async def parse_file_form(request):
-    return web.FileResponse('restaff/res/file_form.html')
+def parse_file_form():
+    with open('restaff/res/file_form.html', 'r') as f:
+        file_content = f.read()
+    return file_content
+
 
 # TODO make inmem file reading and inmem pdf rendering
-async def parse_file(request):
+def parse_file(form):
+    try:
+        fileitem = form['music_file']
+    except KeyError:
+        fileitem = None
 
-
-
-    data = await request.post()
-    input_file_name = data['music_file'].filename
-    input_file = data['music_file'].file
+    input_file_name = fileitem.filename
+    input_file = fileitem.file
     content = input_file.read()
 
     task_id = str(uuid4())
@@ -47,9 +53,7 @@ async def parse_file(request):
         music_xml_sheet = read_music_xml(input_file_full_path)
     else:
         exit(1)
-    # pprint(music_xml_sheet)
     sheet = ScoreSheet.from_music_xml_sheet(music_xml_sheet)
-    # pprint(sheet)
 
     page_prop = PageProperties(width=2977.2, height=4208.4)
 
@@ -91,10 +95,28 @@ async def parse_file(request):
     return web.Response(body=pdf, content_type='application/pdf')
 
 
+def application(environ, start_response):
+    if environ.get('PATH_INFO') == '/':
+        status = '200 OK'
+        content = parse_file_form().encode('utf8')
+        content_type = 'text/html'
+    elif environ.get('PATH_INFO') == '/restaff':
+        # use cgi module to read data
+        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ, keep_blank_values=True)
+        status = '200 OK'
+        content = parse_file(form).body
+        content_type = 'application/pdf'
+    else:
+        status = '404 NOT FOUND'
+        content = 'Page not found.'.encode('utf8')
+        content_type = 'text/html'
+    response_headers = [('Content-Type', content_type), ('Content-Length', str(len(content)))]
+    start_response(status, response_headers)
+    yield content
+
+
 if __name__ == '__main__':
+    wsgi_handler = WSGIHandler(application)
     app = web.Application()
-    app.add_routes([web.get('/', parse_file_form)])
-    app.add_routes([web.post('/restaff', parse_file)])
-
-    web.run_app(app, host="0.0.0.0", port=5000)
-
+    app.router.add_route("*", "/{path_info:.*}", wsgi_handler)
+    web.run_app(app)
