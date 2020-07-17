@@ -55,7 +55,7 @@ async def parse_file(request):
         octave_left_offset=50,
         time_left_offset=50,
         left_offset=100,
-        right_offset=50,
+        right_offset=40,
     )
 
     staff_prop = StaffProperties(
@@ -93,5 +93,4 @@ if __name__ == '__main__':
     app.add_routes([web.get('/', parse_file_form)])
     app.add_routes([web.post('/restaff', parse_file)])
 
-    web.run_app(app, host="0.0.0.0", port=5000)
-
+    web.run_app(app, host="0.0.0.0", port=8080)
