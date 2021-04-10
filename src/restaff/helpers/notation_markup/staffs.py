@@ -5,13 +5,14 @@ from svgwrite.text import Text
 from .title import title_place_heigh
 from ...types import PageProperties, StaffProperties, Point, ScoreSheet, MeasurePosition, TimeMeasure
 
+LINE_SET_SETUP = [0, 1, 0, 0, 1, 0, 0]
 
 def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Point):
     x, y = point
     lines = []
     lenght = page_prop.width - point.x - staff_prop.right_offset
     for i in range(7):
-        dotted_lines = [0, 1, 0, 0, 1, 0, 0]
+        dotted_lines = LINE_SET_SETUP
         line = Polyline(
             points=[(x, y + i * staff_prop.staff_line_offset), (x + lenght, y + i * staff_prop.staff_line_offset)]
         ).stroke(
@@ -188,7 +189,8 @@ def markup_extra_staffs(staff_prop: StaffProperties, staff_start_position, horiz
     objects = []
     if note_vertical_offset < 0:
         count = abs(int(
-            (note_vertical_offset) // staff_prop.staff_line_offset))
+            (note_vertical_offset) // staff_prop.staff_line_offset
+        ))
 
         for idx in range(1, count + 1):
             y = staff_start_position - idx * staff_prop.staff_line_offset
@@ -201,12 +203,9 @@ def markup_extra_staffs(staff_prop: StaffProperties, staff_start_position, horiz
                 linejoin='bevel',
             )
 
-            dotted_lines = {
-                0: True,
-                1: False,
-                2: True,
-            }
-            if dotted_lines[idx % 3]:
+            # 7 lines in LINE_SET_SETUP, last - bottom.
+            # Get for next top last with skipping 1 doubled starting and 1 existing.
+            if LINE_SET_SETUP[-((idx) % 3) - 1]:
                 line.dasharray([5, 7])
             objects += [line]
 
@@ -223,12 +222,8 @@ def markup_extra_staffs(staff_prop: StaffProperties, staff_start_position, horiz
                 linejoin='bevel',
             )
 
-            dotted_lines = {
-                0: True,
-                1: True,
-                2: False,
-            }
-            if dotted_lines[idx % 3]:
+            # 7 lines in LINE_SET_SETUP, first - top. Get for next bottom from start, skipping 1 existing.
+            if LINE_SET_SETUP[idx % 3]:
                 line.dasharray([5, 7])
             objects += [line]
     return objects
