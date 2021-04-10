@@ -21,9 +21,6 @@ async def parse_file_form(request):
 
 # TODO make inmem file reading and inmem pdf rendering
 async def parse_file(request):
-
-
-
     data = await request.post()
     input_file_name = data['music_file'].filename
     input_file = data['music_file'].file
