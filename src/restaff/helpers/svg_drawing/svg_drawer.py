@@ -15,7 +15,6 @@ def render(page_prop: PageProperties, objects: List[BaseElement], file_path, pag
     dwg = svgwrite.Drawing(
         file_path,
         size=(f'{page_prop.width}px', f'{page_prop.height}px'),
-        profile='tiny',
         viewBox=view_box
     )
 

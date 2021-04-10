@@ -21,19 +21,23 @@ with staf lines inversion and half-note modification instead of filling notes.
 ## Schematic illustration
 ```
                                           ◠  ⃝
-A# Cb |................................⃝..|......     <- dotted line
+C     |-------⃝--|--|--|--|--|------|-----|------     <- solid line
                              ◠   ⃝  ◡     |
-F# Gb |...................⃝..|......|.....|......     <- dotted line
-                 ◠  ⃝  ◡  |  |      |     |
-D     |-------⃝--|--|--|--|--|------|-----|------     <- solid line
-        ⃝  ◡  |  |  |  |  |  |      |     |
+G# Ab |...................⃝..|......|.....|......     <- dotted line
+              ◠  ⃝  ◡  |  |      |     |
+E     |-------⃝--|--|--|--|--|------|-----|------     <- solid line
+              ⃝  ◡  |  |  |  |  |  |      |     |
+C     |-------⃝--|--|--|--|--|------|-----|------     <- solid line
+
+
         C  C# D  D# E  F  F# G  G#  A  A# B 
+
 ```
 
 ## Example results
-* [Intervals](./examples/results/Intervals.pdf)
-* [Blondie Readhat - For the damaged Coda (Part)](./examples/results/ForTheDammagedCoda.pdf)
-* [Toby Fox - Waterfall (part)](./examples/results/Waterfall.pdf)
+* [Intervals](./examples/results/v2/Intervals.pdf)
+* [Blondie Readhat - For the damaged Coda (Part)](./examples/results/v2/ForTheDammagedCoda.pdf)
+* [Toby Fox - Waterfall (part)](./examples/results/v2/Waterfall.pdf)
 
 # Converter usage
 ## Supported input formats
