@@ -149,7 +149,7 @@ def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave,
     )]
 
     if note.dot:
-        addition = note_offset % staff_prop.staff_line_offset + staff_prop.staff_line_offset / 2
+        addition = (note_offset - 0.5) % staff_prop.staff_line_offset - staff_prop.staff_line_offset / 2
         objects += [
             Circle(
                 center=(
