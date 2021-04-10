@@ -11,7 +11,7 @@ def staff_line(page_prop: PageProperties, staff_prop: StaffProperties, point: Po
     lines = []
     lenght = page_prop.width - point.x - staff_prop.right_offset
     for i in range(7):
-        dotted_lines = [1, 1, 0, 1, 1, 0, 1]
+        dotted_lines = [0, 1, 0, 0, 1, 0, 0]
         line = Polyline(
             points=[(x, y + i * staff_prop.staff_line_offset), (x + lenght, y + i * staff_prop.staff_line_offset)]
         ).stroke(
@@ -144,12 +144,12 @@ def markup_measure_octave(staff_prop: StaffProperties, octave_text, staff_measur
     x = staff_measure_point.x + 25
     y = staff_measure_point.y + staff_prop.staff_height - staff_prop.staff_line_offset
     r = staff_prop.staff_line_offset * 0.8
-    font_size = staff_prop.staff_line_offset * 1.45
+    font_size = staff_prop.staff_line_offset * 1.43
     return [
-        Circle(center=(x, y), r=r, fill="rgb(255,255,255)", stroke="rgb(0,0,0)", stroke_width=2),
+        Circle(center=(x, y), r=r, fill="rgb(255,255,255)", stroke="rgb(0,0,0)", stroke_width=0.5),
         Text(
             octave_text,
-            insert=(x, y + font_size * 0.35),
+            insert=(x, y + font_size * 0.36),
             fill="rgb(0,0,0)",
             text_anchor="middle",
             style=f"font-size:{font_size}; font-family:Arial",

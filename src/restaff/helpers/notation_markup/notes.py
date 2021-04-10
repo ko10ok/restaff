@@ -8,29 +8,31 @@ from svgwrite.text import Text
 from restaff.helpers.svg_drawing import moved_path
 from ...types import NotePitch, Note, Point, StaffProperties
 
+note_start_offset = - 0.5
+
 # (multiplier from 1 staff line, lower upper half note)
 notes_offsets = {
-    'C': (0.5, 0),
-    'C#': (1, -1),
-    'Db': (1, -1),
-    'D': (1, 0),
-    'D#': (1, 1),
-    'Eb': (1, 1),
-    'E': (1.5, 0),
-    'Fb': (1.5, 0),
-    'E#': (2, -1),
-    'F': (2, -1),
-    'F#': (2, 0),
+    'C': (0, 0),
+    'C#': (0, 1),
+    'Db': (0, 1),
+    'D': (0.5, 0),
+    'D#': (1, -1),
+    'Eb': (1, -1),
+    'E': (1, 0),
+    'Fb': (1, 0),
+    'E#': (1, 1),
+    'F': (1, 1),
+    'F#': (1.5, 0),
     'Gb': (2, 0),
-    'G': (2, 1),
-    'G#': (2.5, 0),
-    'Ab': (2.5, 0),
-    'A': (3, -1),
-    'A#': (3, 0),
-    'Bb': (3, 0),
-    'B': (3, 1),
-    'Cb': (3, 1),
-    'B#': (3.5, 0),
+    'G': (2, -1),
+    'G#': (2, 0),
+    'Ab': (2, 0),
+    'A': (2, 1),
+    'A#': (2.5, 0),
+    'Bb': (2.5, 0),
+    'B': (3, -1),
+    'Cb': (3, -1),
+    'B#': (3, 0),
 }
 
 notes_times = {
@@ -147,7 +149,7 @@ def markup_note(staff_prop: StaffProperties, staff_start_position, staff_octave,
     )]
 
     if note.dot:
-        addition = note_offset % staff_prop.staff_line_offset - staff_prop.staff_line_offset / 2
+        addition = note_offset % staff_prop.staff_line_offset + staff_prop.staff_line_offset / 2
         objects += [
             Circle(
                 center=(
