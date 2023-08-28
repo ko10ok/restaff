@@ -2,7 +2,7 @@ xmltodict==0.12.0
 svgwrite==1.4
 svg.path==4.0.2
 argparse==1.4.0
-reportlab==3.5.42
+reportlab==3.6.13
 svglib==1.0.0
 aiohttp==3.7.4
 aiohttp-wsgi==0.8.2
